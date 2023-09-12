@@ -1,0 +1,15 @@
+C:\Users\hajra\OneDrive\FH-Technikum\3.Semester\POS\MonsterTradingCards\MonsterTradingCards\bin\Debug\net7.0\MonsterTradingCards.exe
+C:\Users\hajra\OneDrive\FH-Technikum\3.Semester\POS\MonsterTradingCards\MonsterTradingCards\bin\Debug\net7.0\MonsterTradingCards.deps.json
+C:\Users\hajra\OneDrive\FH-Technikum\3.Semester\POS\MonsterTradingCards\MonsterTradingCards\bin\Debug\net7.0\MonsterTradingCards.runtimeconfig.json
+C:\Users\hajra\OneDrive\FH-Technikum\3.Semester\POS\MonsterTradingCards\MonsterTradingCards\bin\Debug\net7.0\MonsterTradingCards.dll
+C:\Users\hajra\OneDrive\FH-Technikum\3.Semester\POS\MonsterTradingCards\MonsterTradingCards\bin\Debug\net7.0\MonsterTradingCards.pdb
+C:\Users\hajra\OneDrive\FH-Technikum\3.Semester\POS\MonsterTradingCards\MonsterTradingCards\obj\Debug\net7.0\MonsterTradingCards.csproj.AssemblyReference.cache
+C:\Users\hajra\OneDrive\FH-Technikum\3.Semester\POS\MonsterTradingCards\MonsterTradingCards\obj\Debug\net7.0\MonsterTradingCards.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\hajra\OneDrive\FH-Technikum\3.Semester\POS\MonsterTradingCards\MonsterTradingCards\obj\Debug\net7.0\MonsterTradingCards.AssemblyInfoInputs.cache
+C:\Users\hajra\OneDrive\FH-Technikum\3.Semester\POS\MonsterTradingCards\MonsterTradingCards\obj\Debug\net7.0\MonsterTradingCards.AssemblyInfo.cs
+C:\Users\hajra\OneDrive\FH-Technikum\3.Semester\POS\MonsterTradingCards\MonsterTradingCards\obj\Debug\net7.0\MonsterTradingCards.csproj.CoreCompileInputs.cache
+C:\Users\hajra\OneDrive\FH-Technikum\3.Semester\POS\MonsterTradingCards\MonsterTradingCards\obj\Debug\net7.0\MonsterTradingCards.dll
+C:\Users\hajra\OneDrive\FH-Technikum\3.Semester\POS\MonsterTradingCards\MonsterTradingCards\obj\Debug\net7.0\refint\MonsterTradingCards.dll
+C:\Users\hajra\OneDrive\FH-Technikum\3.Semester\POS\MonsterTradingCards\MonsterTradingCards\obj\Debug\net7.0\MonsterTradingCards.pdb
+C:\Users\hajra\OneDrive\FH-Technikum\3.Semester\POS\MonsterTradingCards\MonsterTradingCards\obj\Debug\net7.0\MonsterTradingCards.genruntimeconfig.cache
+C:\Users\hajra\OneDrive\FH-Technikum\3.Semester\POS\MonsterTradingCards\MonsterTradingCards\obj\Debug\net7.0\ref\MonsterTradingCards.dll
