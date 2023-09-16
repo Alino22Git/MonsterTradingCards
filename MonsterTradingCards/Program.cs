@@ -4,16 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MonsterTradingCards.Classes;
-using MonsterTradingCards.GameLogic;
+using MonsterTradingCards.GameFunctions;
 
 
 namespace MonsterTradingCards
 {
-    internal class StartMain
+    internal class Program
     {
         static void Main()
         {
-            GameLogic.startGame();
+            var gameLogic = new GameLogic();
+            gameLogic.StartGame(); 
         }
     }
 

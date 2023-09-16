@@ -1,4 +1,4 @@
-﻿namespace MonsterTradingCards.Classes
+﻿namespace MonsterTradingCards.BasicClasses
 {
     internal class Monster : Card
     {

@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonsterTradingCards.GameLogic
+namespace MonsterTradingCards.GameFunctions
 {
     internal class GameLogic
     {
-        public void startGame()
+        public void StartGame()
         {
 
         }
