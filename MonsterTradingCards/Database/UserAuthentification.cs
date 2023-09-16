@@ -1,41 +1,39 @@
-﻿using MonsterTradingCards.BasicClasses;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
+using MonsterTradingCards.BasicClasses;
 
-namespace MonsterTradingCards.Database
+namespace MonsterTradingCards.Database;
+
+public class UserAuthentification
 {
-    public class UserAuthentification
+    private readonly List<User> users = new();
+
+    public void RegisterUser(string username, string password)
     {
-        private List<User> users = new List<User>();
+        //Simple Password-Hashing
+        var salt = GenerateSalt(16);
+        var passwordHash = ComputeHash(password, salt);
 
-        public void RegisterUser(string username, string password)
+        //Save user in db
+        users.Add(new User
         {
-            //Simple Password-Hashing
-            var salt = GenerateSalt();
-            var passwordHash = ComputeHash(password, salt);
+            UserID = users.Count + 1,
+            Username = username,
+            PasswordHash = passwordHash,
+            //While registration the user does not have a token
+            Token = null
+        });
+    }
 
-            //Save user in db
-            users.Add(new User
-            {
-                UserID = users.Count + 1,
-                Username = username,
-                PasswordHash = passwordHash,
-                //While registration the user does not have a token
-                Token = null
-            });
-        }
+    public bool LoginUser(string username, string password)
+    {
+        var user = users.Find(x => x.Username == username);
 
-        public bool LoginUser(string username, string password)
+        if (user != null)
         {
-            var user = users.Find(x => x.Username == username);
-            
-            if (user != null)
+            //Test Password
+            if (user.PasswordHash != null)
             {
-                //Test Password
                 var salt = GetSaltFromHash(user.PasswordHash);
                 var hashedPassword = ComputeHash(password, salt);
 
@@ -46,53 +44,50 @@ namespace MonsterTradingCards.Database
                     return true;
                 }
             }
-
-            return false;
         }
 
-        public bool VerifyToken(string username, string token)
+        return false;
+    }
+
+    public bool VerifyToken(string username, string token)
+    {
+        var user = users.Find(u => u.Username == username);
+
+        if (user != null && user.Token == token) return true;
+
+        return false;
+    }
+
+    public static string GenerateSalt(int length)
+    {
+        var randomBytes = new byte[length];
+        using (var rng = RandomNumberGenerator.Create())
         {
-            var user = users.Find(u => u.Username == username);
-
-            if (user != null && user.Token == token)
-            {
-                return true;
-            }
-
-            return false;
+            rng.GetBytes(randomBytes);
         }
 
-        private string GenerateSalt()
+        return BitConverter.ToString(randomBytes).Replace("-", "");
+    }
+
+    private string ComputeHash(string password, string salt)
+    {
+        using (var sha256 = SHA256.Create())
         {
-            var saltBytes = new byte[16];
-            //Secure random number by .NET
-            using (var rng = new RNGCryptoServiceProvider())
-            {
-                rng.GetBytes(saltBytes);
-            }
-            return Convert.ToBase64String(saltBytes);
+            var saltedPassword = Encoding.UTF8.GetBytes(password + salt);
+            var hashBytes = sha256.ComputeHash(saltedPassword);
+            return Convert.ToBase64String(hashBytes);
         }
+    }
 
-        private string ComputeHash(string password, string salt)
-        {
-            using (var sha256 = SHA256.Create())
-            {
-                var saltedPassword = Encoding.UTF8.GetBytes(password + salt);
-                var hashBytes = sha256.ComputeHash(saltedPassword);
-                return Convert.ToBase64String(hashBytes);
-            }
-        }
+    private string GetSaltFromHash(string hashedPassword)
+    {
+        //Extrate salt from Hash (implification that first 16 bytes are salt)
+        return hashedPassword.Substring(0, 16);
+    }
 
-        private string GetSaltFromHash(string hashedPassword)
-        {
-            // Extrahiere das Salz aus einem gehashten Passwort (nicht empfohlen)
-            return hashedPassword.Substring(0, 16); // Annahme: Die ersten 16 Zeichen sind das Salz
-        }
-
-        private string GenerateToken()
-        {
-            //Guid = Globally Unique Identifier
-            return Guid.NewGuid().ToString();
-        }
+    private string GenerateToken()
+    {
+        //Guid = Globally Unique Identifier
+        return Guid.NewGuid().ToString();
     }
 }

@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "qxQ5ta+ggaUKRo9VPf8TalRO2/lfCjlGE7X5+XVCAzu9/yAbGVaocTIWyNnie2hiV02Y853IXfdqgxGy6tra3g==",
+  "dgSpecHash": "HQIhmg36vZHw5PUP+j+kA9OoSsXOlKDgZsKwdVwp6BKvsKzNmwxcUGP+Kluvui9eaZtFcY1qU4J/y3ULvkvCLg==",
   "success": true,
   "projectFilePath": "C:\\Users\\hajra\\OneDrive\\FH-Technikum\\3.Semester\\POS\\MonsterTradingCards\\MonsterTradingCards\\MonsterTradingCards.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\hajra\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
+  ],
   "logs": []
 }
