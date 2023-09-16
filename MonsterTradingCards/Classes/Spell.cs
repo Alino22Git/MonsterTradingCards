@@ -1,6 +1,6 @@
-﻿namespace MonsterTradingCards
+﻿namespace MonsterTradingCards.Classes
 {
-    internal class Spell:Card
+    internal class Spell : Card
     {
         public Spell(string name, int damage, string element)
         {

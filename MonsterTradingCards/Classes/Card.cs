@@ -1,10 +1,10 @@
-﻿namespace MonsterTradingCards
+﻿namespace MonsterTradingCards.Classes
 {
     internal class Card
     {
-        protected  string name;
-        protected  int damage;
-        protected  string element;
+        protected string name;
+        protected int damage;
+        protected string element;
 
         public Card()
         {

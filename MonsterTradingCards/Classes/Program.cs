@@ -1,6 +1,6 @@
 ﻿using System.Reflection.Metadata;
 
-namespace MonsterTradingCards
+namespace MonsterTradingCards.Classes
 {
     internal class Program
     {

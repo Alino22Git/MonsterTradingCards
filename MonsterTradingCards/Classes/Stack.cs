@@ -1,4 +1,4 @@
-﻿namespace MonsterTradingCards
+﻿namespace MonsterTradingCards.Classes
 {
     internal class Stack
     {
