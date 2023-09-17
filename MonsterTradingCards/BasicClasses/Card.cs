@@ -9,8 +9,8 @@
         public Card()
         {
             name = "Null";
-            damage = 404;
-            element = "None";
+            damage = -1;
+            element = "Null";
         }
         public Card(string name, int damage, string element)
         {

@@ -7,8 +7,6 @@ namespace MonsterTradingCards.GameFunctions
     {
         public void StartGame()
         {
-            CreateHostBuilder(args).Build().Run();
-
         }
     }
 }
