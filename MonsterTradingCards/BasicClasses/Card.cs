@@ -6,13 +6,13 @@
         protected int damage;
         protected string element;
 
-        public Card()
+        public Card():base()
         {
             name = "Null";
             damage = -1;
             element = "Null";
         }
-        public Card(string name, int damage, string element)
+        public Card(string name, int damage, string element) : base()
         {
             this.name = name;
             this.damage = damage;

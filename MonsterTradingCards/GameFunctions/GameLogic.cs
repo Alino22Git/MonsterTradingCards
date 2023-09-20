@@ -7,6 +7,7 @@ namespace MonsterTradingCards.GameFunctions
     {
         public void StartGame()
         {
+
         }
     }
 }

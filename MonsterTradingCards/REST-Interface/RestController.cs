@@ -13,7 +13,7 @@ namespace MonsterTradingCards.REST_Interface
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
         {
-            return new string[] {"0", "Alen", "BHIF" };
+            return new string[] {"0", "Alen", "BIF3b" };
         }
 
         //Call for userID
