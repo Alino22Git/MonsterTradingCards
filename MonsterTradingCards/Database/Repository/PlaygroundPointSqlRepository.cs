@@ -7,7 +7,7 @@ using NpgsqlTypes;
 
 namespace MonsterTradingCards.Database.Repository
 {
-    public class PlaygroundPointSqlRepository : IRepository<PlaygroundPoint>
+    public class CardSqlRepository : IRepository<Card>
     {
         private readonly string _connectionString;
 
@@ -39,7 +39,7 @@ namespace MonsterTradingCards.Database.Repository
                 using (IDbCommand cmd = connection.CreateCommand())
                 {
                     cmd.CommandText = @"
-                        CREATE TABLE IF NOT EXISTS PlaygroundPoints (
+                        CREATE TABLE IF NOT EXISTS Cards (
                             fId VARCHAR(50) NOT NULL,
                             objectId INT PRIMARY KEY, 
                             shape VARCHAR(50) NOT NULL,
@@ -55,19 +55,19 @@ namespace MonsterTradingCards.Database.Repository
             }
         }
 
-        public PlaygroundPointSqlRepository(string connectionString)
+        public CardSqlRepository(string connectionString)
         {
             _connectionString = connectionString;
         }
 
-        public PlaygroundPoint Get(int id)
+        public Card Get(int id)
         {
             using (IDbConnection connection = new NpgsqlConnection(_connectionString))
             {
                 using (IDbCommand command = connection.CreateCommand())
                 {
                     command.CommandText = @"SELECT fid, objectid, shape, anlname, bezirk, spielplatzdetail, typdetail, seannocaddata
-                                        FROM playgroundpoints
+                                        FROM Cards
                                         WHERE objectid = @id";
 
                     connection.Open();
@@ -82,7 +82,7 @@ namespace MonsterTradingCards.Database.Repository
                     {
                         if (reader.Read())
                         {
-                            return new PlaygroundPoint(
+                            return new Card(
                                 reader.GetString(0),
                                 reader.GetInt32(1),
                                 reader.GetString(2),
@@ -99,22 +99,22 @@ namespace MonsterTradingCards.Database.Repository
             return null;
         }
 
-        public IEnumerable<PlaygroundPoint> GetAll()
+        public IEnumerable<Card> GetAll()
         {
-            List<PlaygroundPoint> result = new List<PlaygroundPoint>();
+            List<Card> result = new List<Card>();
             using (IDbConnection connection = new NpgsqlConnection(_connectionString))
             {
                 using (IDbCommand command = connection.CreateCommand())
                 {
                     connection.Open();
                     command.CommandText = @"SELECT fid, objectid, shape, anlname, bezirk, spielplatzdetail, typdetail, seannocaddata
-                                            FROM playgroundpoints";
+                                            FROM Cards";
 
                     using (IDataReader reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            result.Add(new PlaygroundPoint(
+                            result.Add(new Card(
                                 reader.GetString(0),
                                 reader.GetInt32(1),
                                 reader.GetString(2),
@@ -131,7 +131,7 @@ namespace MonsterTradingCards.Database.Repository
             return result;
         }
 
-        public void Add(PlaygroundPoint point)
+        public void Add(Card point)
         {
             // This is not ideal, connection should stay open to allow a faster batch save mode
             // but for now it is ok
@@ -140,7 +140,7 @@ namespace MonsterTradingCards.Database.Repository
                 using (IDbCommand command = connection.CreateCommand())
                 {
                     connection.Open();
-                    command.CommandText = @"INSERT INTO playgroundpoints (fid, objectid, shape, anlname, bezirk, spielplatzdetail, typdetail, seannocaddata)
+                    command.CommandText = @"INSERT INTO Cards (fid, objectid, shape, anlname, bezirk, spielplatzdetail, typdetail, seannocaddata)
                                             VALUES (@fid, @objectId, @shape, @anlName, @bezirk, @spielplatzDetail, @typDetail, @seAnnoCadData)";
 
                     command.AddParameterWithValue("fid", DbType.String, point.FId);
@@ -159,56 +159,56 @@ namespace MonsterTradingCards.Database.Repository
             }
         }
 
-        public void Update(PlaygroundPoint playgroundPoint, string[] parameters)
+        public void Update(Card Card, string[] parameters)
         {
-            playgroundPoint.FId = parameters[0] ?? throw new ArgumentNullException("fId cannot be null");
-            playgroundPoint.ObjectId = int.Parse(parameters[1] ?? throw new ArgumentNullException("ObjectId cannot be null"));
-            playgroundPoint.Shape = parameters[2];
-            playgroundPoint.AnlName = parameters[3];
+            Card.FId = parameters[0] ?? throw new ArgumentNullException("fId cannot be null");
+            Card.ObjectId = int.Parse(parameters[1] ?? throw new ArgumentNullException("ObjectId cannot be null"));
+            Card.Shape = parameters[2];
+            Card.AnlName = parameters[3];
 
             if (parameters[4] != null)
-                playgroundPoint.Bezirk = int.Parse(parameters[4]);
+                Card.Bezirk = int.Parse(parameters[4]);
             else
                 // just for clarity, as null is the default value anyway
-                playgroundPoint.Bezirk = null;
+                Card.Bezirk = null;
 
-            playgroundPoint.SpielplatzDetail = parameters[5] ?? throw new ArgumentNullException("SpielplatzDetail cannot be null");
-            playgroundPoint.TypDetail = parameters[6] ?? throw new ArgumentNullException("TypDetail cannot be null");
-            playgroundPoint.SeAnnoCadData = parameters[7];
+            Card.SpielplatzDetail = parameters[5] ?? throw new ArgumentNullException("SpielplatzDetail cannot be null");
+            Card.TypDetail = parameters[6] ?? throw new ArgumentNullException("TypDetail cannot be null");
+            Card.SeAnnoCadData = parameters[7];
 
             using (IDbConnection connection = new NpgsqlConnection(_connectionString))
             {
                 using (IDbCommand command = connection.CreateCommand())
                 {
                     connection.Open();
-                    command.CommandText = @"UPDATE playgroundpoints
+                    command.CommandText = @"UPDATE Cards
                                             SET fid = @fid, shape = @shape, anlname = @anlName, bezirk = @bezirk, 
                                             spielplatzdetail = @spielplatzDetail, typdetail = @typDetail, seannocaddata = @seAnnoCadData
                                             WHERE objectid = @objectId";
 
-                    command.AddParameterWithValue("fid", DbType.String, playgroundPoint.FId);
-                    command.AddParameterWithValue("shape", DbType.String, playgroundPoint.Shape);
-                    command.AddParameterWithValue("anlName", DbType.String, playgroundPoint.AnlName);
-                    command.AddParameterWithValue("bezirk", DbType.Int32, playgroundPoint.Bezirk);
-                    command.AddParameterWithValue("spielplatzDetail", DbType.String, playgroundPoint.SpielplatzDetail);
-                    command.AddParameterWithValue("typDetail", DbType.String, playgroundPoint.TypDetail);
-                    command.AddParameterWithValue("seAnnoCadData", DbType.String, playgroundPoint.SeAnnoCadData);
-                    command.AddParameterWithValue("objectId", DbType.Int32, playgroundPoint.ObjectId);
+                    command.AddParameterWithValue("fid", DbType.String, Card.FId);
+                    command.AddParameterWithValue("shape", DbType.String, Card.Shape);
+                    command.AddParameterWithValue("anlName", DbType.String, Card.AnlName);
+                    command.AddParameterWithValue("bezirk", DbType.Int32, Card.Bezirk);
+                    command.AddParameterWithValue("spielplatzDetail", DbType.String, Card.SpielplatzDetail);
+                    command.AddParameterWithValue("typDetail", DbType.String, Card.TypDetail);
+                    command.AddParameterWithValue("seAnnoCadData", DbType.String, Card.SeAnnoCadData);
+                    command.AddParameterWithValue("objectId", DbType.Int32, Card.ObjectId);
                     command.ExecuteNonQuery();
                 }
             }
         }
 
-        public void Delete(PlaygroundPoint PlaygroundPoint)
+        public void Delete(Card Card)
         {
             using (IDbConnection connection = new NpgsqlConnection(_connectionString))
             {
                 using (IDbCommand command = connection.CreateCommand())
                 {
                     connection.Open();
-                    command.CommandText = @"DELETE FROM playgroundpoints WHERE objectid = @objectId";
+                    command.CommandText = @"DELETE FROM Cards WHERE objectid = @objectId";
 
-                    command.AddParameterWithValue("objectId", DbType.Int32, PlaygroundPoint.ObjectId);
+                    command.AddParameterWithValue("objectId", DbType.Int32, Card.ObjectId);
 
                     command.ExecuteNonQuery();
                 }

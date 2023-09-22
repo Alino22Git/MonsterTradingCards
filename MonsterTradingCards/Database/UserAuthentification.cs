@@ -17,7 +17,7 @@ public class UserAuthentification
         //Save user in db
         users.Add(new User
         {
-            UserID = users.Count + 1,
+            UserId = users.Count + 1,
             Username = username,
             PasswordHash = passwordHash,
             //While registration the user does not have a token

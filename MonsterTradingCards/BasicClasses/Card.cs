@@ -2,9 +2,9 @@
 {
     internal class Card
     {
-        protected string name;
-        protected int damage;
-        protected string element;
+        protected string name { get; set; }
+        protected int damage { get; set; }
+        protected string element{ get; set; }
 
         public Card():base()
         {

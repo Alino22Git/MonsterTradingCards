@@ -27,7 +27,7 @@ namespace MonsterTradingCards.REST_Interface
         [HttpPost]
         public ActionResult Post([FromBody] User user)
         {
-            return CreatedAtAction("Get", new { id = user.UserID }, user);
+            return CreatedAtAction("Get", new { id = user.UserId }, user);
         }
 
         //Used to update a user
