@@ -1,22 +1,22 @@
 ﻿namespace MonsterTradingCards.BasicClasses
 {
-    internal class Card
+    public class Card
     {
-        protected string name { get; set; }
-        protected int damage { get; set; }
-        protected string element{ get; set; }
+        protected string CardName { get; set; }
+        protected int Damage { get; set; }
+        protected string Element{ get; set; }
 
         public Card():base()
         {
-            name = "Null";
-            damage = -1;
-            element = "Null";
+            CardName = "Null";
+            Damage = -1;
+            Element = "Null";
         }
         public Card(string name, int damage, string element) : base()
         {
-            this.name = name;
-            this.damage = damage;
-            this.element = element;
+            this.CardName = name;
+            this.Damage = damage;
+            this.Element = element;
         }
 
 

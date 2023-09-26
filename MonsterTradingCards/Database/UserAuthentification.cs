@@ -6,6 +6,7 @@ namespace MonsterTradingCards.Database;
 
 public class UserAuthentification
 {
+    /*
     private readonly List<User> users = new();
 
     public void RegisterUser(string username, string password)
@@ -79,7 +80,7 @@ public class UserAuthentification
         }
     }
 
-    private string GetSaltFromHash(string hashedPassword)
+    private string GetSaltFromHash(string? hashedPassword)
     {
         //Extrate salt from Hash (implification that first 16 bytes are salt)
         return hashedPassword.Substring(0, 16);
@@ -90,4 +91,5 @@ public class UserAuthentification
         //Guid = Globally Unique Identifier
         return Guid.NewGuid().ToString();
     }
+    */
 }

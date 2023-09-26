@@ -1,19 +1,17 @@
-﻿using System.Security.Cryptography;
-
-namespace MonsterTradingCards.BasicClasses;
+﻿namespace MonsterTradingCards.BasicClasses;
 
 public class User
 {
     public int UserId { get;}
-    public string Username { get;}
-    public string PasswordHash { get;}
-    public string? Token { get; set; }
+    public string? Username { get;}
+    public string? PasswordHash { get;}
+    public string Token { get; set; }
 
     public User()
     {
     }
 
-    public User(int userId, string username, string passwordHash, string? token)
+    public User(int userId, string? username, string? passwordHash, string? token)
     {
         UserId = userId;
         Username = username;
@@ -21,13 +19,17 @@ public class User
         Token = token;
     }
 
-    public override bool Equals(object o)
+    public override bool Equals(object? o)
     {
+        if (Username == null || PasswordHash == null)
+        {
+            throw new NullReferenceException();
+        }
         if (this == o)
         {
             return true;
         }
-        if (o.GetType() != this.GetType())
+        if (o?.GetType() != this.GetType())
         {
             return false;
         }

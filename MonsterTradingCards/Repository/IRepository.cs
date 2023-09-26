@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace MonsterTradingCards.Database.Repository;
+namespace MonsterTradingCards.Repository;
 
 // Implementation of the Repository Design Pattern
 // Repository overview see: https://dotnettutorials.net/lesson/repository-design-pattern-csharp/
