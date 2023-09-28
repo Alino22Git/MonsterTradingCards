@@ -2,7 +2,7 @@
 using System.Text;
 using MonsterTradingCards.BasicClasses;
 
-namespace MonsterTradingCards.Database;
+namespace MonsterTradingCards.Repository;
 
 public class UserAuthentification
 {

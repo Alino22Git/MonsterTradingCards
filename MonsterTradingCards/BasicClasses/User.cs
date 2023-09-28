@@ -2,9 +2,9 @@
 
 public class User
 {
-    public int UserId { get;}
-    public string? Username { get;}
-    public string? PasswordHash { get;}
+    public int UserId { set; get;}
+    public string? Username { set; get;}
+    public string? PasswordHash { set; get;}
     public string Token { get; set; }
 
     public User()

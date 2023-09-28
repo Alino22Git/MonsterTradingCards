@@ -1,21 +1,26 @@
 ﻿using MonsterTradingCards.BasicClasses;
+using MonsterTradingCards.Repository;
 
 namespace MonsterTradingCards.GameFunctions
 {
     internal class GameLogic
     {
         private const string DbConnectionString =
-            "Host=localhost;Username=postgres;Password=changeme;Database=simpledatastore";
+            "Host=localhost;Username=postgres;Password=1223;Database=MonsterTradingCardGame";
 
         public void StartGame()
         {
-            PlaygroundPointSqlRepository.InitDb(DbConnectionString);
+            UserRepo.InitDb(DbConnectionString);
         }
 
-        private static User ReadDataFromDatabase(int searchObjectId)
+
+
+
+
+        private static List<User> ReadDataFromDatabase(int searchObjectId)
         {
-            var repo = new UserDbSqlRepo(DbConnectionString);
-            var data = new List<PlaygroundPoint>();
+            var repo = new UserRepo(DbConnectionString);
+            var data = new List<User>();
 
             if (searchObjectId > 0)
                 data.Add(repo.Get(searchObjectId));
@@ -25,9 +30,9 @@ namespace MonsterTradingCards.GameFunctions
             return data;
         }
 
-        private static void WriteDataToDatabase(IEnumerable<PlaygroundPoint> data)
+        private static void WriteDataToDatabase(IEnumerable<User> data)
         {
-            var repo = new PlaygroundPointSqlRepository(DbConnectionString);
+            var repo = new UserRepo(DbConnectionString);
             foreach (var item in data)
             {
                 Console.WriteLine("  save item: " + item);
