@@ -50,7 +50,7 @@ public class UserRepo : IRepository<User>
             using (IDbCommand cmd = connection.CreateCommand())
             {
                 cmd.CommandText = @"
-                        CREATE TABLE IF NOT EXISTS User (
+                        CREATE TABLE IF NOT EXISTS Player (
                             userId INT PRIMARY KEY, 
                             username VARCHAR(50) NOT NULL,
                             passwordHash VARCHAR(255) NOT NULL,
@@ -70,7 +70,7 @@ public class UserRepo : IRepository<User>
             using (IDbCommand command = connection.CreateCommand())
             {
                 command.CommandText = @"SELECT *
-                                        FROM User
+                                        FROM Player
                                         WHERE userId = @id";
 
                 connection.Open();
@@ -107,7 +107,7 @@ public class UserRepo : IRepository<User>
             {
                 connection.Open();
                 command.CommandText = @"SELECT *
-                                        FROM User";
+                                        FROM Player";
 
                 using (IDataReader reader = command.ExecuteReader())
                 {
@@ -133,7 +133,7 @@ public class UserRepo : IRepository<User>
             using (IDbCommand command = connection.CreateCommand())
             {
                 connection.Open();
-                command.CommandText = @"INSERT INTO playgroundpoints (userId, username, passwordHash, token)
+                command.CommandText = @"INSERT INTO Player (userId, username, passwordHash, token)
                                             VALUES (@id, @uname, @pass, @token)";
 
                 var parameter = command.CreateParameter();
@@ -186,11 +186,11 @@ public class UserRepo : IRepository<User>
             using (IDbCommand command = connection.CreateCommand())
             {
                 connection.Open();
-                command.CommandText = @"UPDATE User
+                command.CommandText = @"UPDATE Player
                                             SET username = @uname, passwordHash = @pass, token = @token
                                             WHERE userId = @id";
 
-                command.CommandText = @"INSERT INTO playgroundpoints (userId, username, passwordHash, token)
+                command.CommandText = @"INSERT INTO Player (userId, username, passwordHash, token)
                                             VALUES (@id, @uname, @pass, @token)";
 
                 var parameter = command.CreateParameter();
@@ -221,7 +221,7 @@ public class UserRepo : IRepository<User>
             using (IDbCommand command = connection.CreateCommand())
             {
                 connection.Open();
-                command.CommandText = @"DELETE FROM User WHERE userId = @id";
+                command.CommandText = @"DELETE FROM Player WHERE userId = @id";
 
                 var parameter = command.CreateParameter();
                 parameter.ParameterName = "id";
