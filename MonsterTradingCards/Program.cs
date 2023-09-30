@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MonsterTradingCards.BasicClasses;
 using MonsterTradingCards.GameFunctions;
+using MonsterTradingCards.REST_Interface;
 
 
 namespace MonsterTradingCards
@@ -13,8 +14,9 @@ namespace MonsterTradingCards
     {
         static void Main()
         {
-            var gameLogic = new GameLogic();
-            gameLogic.StartGame(); 
+            var server = new Server();
+            server.RunServer();
+
         }
     }
 
