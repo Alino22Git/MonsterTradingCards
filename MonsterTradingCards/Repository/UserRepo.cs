@@ -27,7 +27,7 @@ public class UserRepo : IRepository<User>
 
         //To connect to db
         string? db = builder.Database;
-
+        Console.WriteLine(db);
         builder.Remove("Database");
         string connstr = builder.ToString();
 
@@ -38,10 +38,10 @@ public class UserRepo : IRepository<User>
             //IDbCommand represents a SQL statement
             using (IDbCommand cmd = connection.CreateCommand())
             {
-                cmd.CommandText = $"DROP DATABASE IF EXISTS {db} WITH (force)";
+                cmd.CommandText = $"DROP DATABASE IF EXISTS \"{db}\" WITH (force)";
                 cmd.ExecuteNonQuery();
 
-                cmd.CommandText = $"CREATE DATABASE {db}";
+                cmd.CommandText = $"CREATE DATABASE \"{db}\"";
                 cmd.ExecuteNonQuery();
             }
             //Changes location to db
@@ -51,7 +51,7 @@ public class UserRepo : IRepository<User>
             {
                 cmd.CommandText = @"
                         CREATE TABLE IF NOT EXISTS Player (
-                            userId INT PRIMARY KEY, 
+                            userId SERIAL PRIMARY KEY, 
                             username VARCHAR(50) NOT NULL,
                             passwordHash VARCHAR(255) NOT NULL,
                             token VARCHAR(255)
@@ -112,14 +112,19 @@ public class UserRepo : IRepository<User>
                 using (IDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
+                {
+                    int userId = reader.GetInt32(0);
+                    string username = reader.GetString(1);
+                    string passwordHash = reader.GetString(2);
+                    string token = null;
+
+                    if (!reader.IsDBNull(3))
                     {
-                        data.Add(new User(
-                            reader.GetInt32(0),
-                            reader.GetString(1),
-                            reader.GetString(2),
-                            reader.GetString(3)
-                        ));
+                        token = reader.GetString(3);
                     }
+
+                    data.Add(new User(userId, username, passwordHash, token));
+                }
                 }
             }
         }
@@ -133,34 +138,37 @@ public class UserRepo : IRepository<User>
             using (IDbCommand command = connection.CreateCommand())
             {
                 connection.Open();
-                command.CommandText = @"INSERT INTO Player (userId, username, passwordHash, token)
-                                            VALUES (@id, @uname, @pass, @token)";
+                command.CommandText = @"INSERT INTO Player (username, passwordHash, token)
+                                    VALUES (@uname, @pass, @token)";
 
-                var parameter = command.CreateParameter();
-                parameter.ParameterName = "id";
-                parameter.Value = u.UserId;
-                command.Parameters.Add(parameter); 
 
-                parameter.ParameterName = "uname";
-                parameter.Value = u.Username;
-                command.Parameters.Add(parameter);
+                //Parameter for username
+                var unameParameter = command.CreateParameter();
+                unameParameter.ParameterName = "uname";
+                unameParameter.Value = u.Username;
+                command.Parameters.Add(unameParameter);
 
-                parameter.ParameterName = "pass";
-                parameter.Value = u.PasswordHash;
-                command.Parameters.Add(parameter);
+                //Parameter for passwordHash
+                var passParameter = command.CreateParameter();
+                passParameter.ParameterName = "pass";
+                passParameter.Value = u.PasswordHash;
+                command.Parameters.Add(passParameter);
 
-                parameter.ParameterName = "token";
-                
+                //Parameter for token
+                var tokenParameter = command.CreateParameter();
+                tokenParameter.ParameterName = "token";
 
-                if (u.Token!=null)
+                if (u.Token != null)
                 {
-                    parameter.Value = u.Token;
+                    tokenParameter.Value = u.Token;
                 }
                 else
                 {
-                    parameter.Value = null;
+                    //DBNull is to represent null in the database
+                    tokenParameter.Value = DBNull.Value; 
                 }
-                command.Parameters.Add(parameter);
+
+                command.Parameters.Add(tokenParameter);
                 command.ExecuteNonQuery();
             }
         }
@@ -232,4 +240,5 @@ public class UserRepo : IRepository<User>
             }
         }
     }
+
 }

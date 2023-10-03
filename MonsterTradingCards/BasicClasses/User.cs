@@ -48,6 +48,6 @@ public class User
 
     public override string ToString()
     {
-        return $"User{{UserId='{string.Join(", ", UserId)}', Username='{Username}', PasswordHash='{PasswordHash}', Token={Token}'}}";
+        return $"User{{UserId='{string.Join(" ", UserId)}', Username='{Username}', PasswordHash='{PasswordHash}', Token={Token}'}}";
     }
 }

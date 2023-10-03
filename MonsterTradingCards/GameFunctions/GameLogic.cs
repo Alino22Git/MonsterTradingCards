@@ -1,22 +1,23 @@
 ﻿using MonsterTradingCards.BasicClasses;
 using MonsterTradingCards.Repository;
+using MonsterTradingCards.REST_Interface;
 
 namespace MonsterTradingCards.GameFunctions
-{
+{  
     internal class GameLogic
     {
-        private const string DbConnectionString =
-            "Host=localhost;Username=postgres;Password=1223;Database=MonsterTradingCardGame";
-
-        public void StartGame()
+        private const string DbConnectionString = "Host=localhost;Username=postgres;Password=1223;Database=MonsterTradingCardGame";
+        public void StartServer()
         {
+            var userRepo = new UserRepo(DbConnectionString);
             UserRepo.InitDb(DbConnectionString);
+            var server = new Server(DbConnectionString);
+            server.RunServer();
         }
 
 
 
-
-
+        /*
         private static List<User> ReadDataFromDatabase(int searchObjectId)
         {
             var repo = new UserRepo(DbConnectionString);
@@ -39,5 +40,8 @@ namespace MonsterTradingCards.GameFunctions
                 repo.Add(item);
             }
         }
+        */
+
     }
+        
 }
