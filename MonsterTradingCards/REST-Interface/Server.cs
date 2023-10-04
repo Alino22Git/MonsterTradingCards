@@ -1,5 +1,4 @@
-﻿using System.Data.Common;
-using System.Net;
+﻿using System.Net;
 using System.Text;
 using MonsterTradingCards.BasicClasses;
 using MonsterTradingCards.Repository;
@@ -9,11 +8,12 @@ namespace MonsterTradingCards.REST_Interface;
 
 public class Server
 {
-    public string ConnectionString { get; }
     public Server(string Con)
     {
         ConnectionString = Con;
     }
+
+    public string ConnectionString { get; }
 
     public void RunServer()
     {
@@ -39,138 +39,95 @@ public class Server
                 {
                     var request = context.Request;
                     var response = context.Response;
-                    UserRepo userRepo = new UserRepo(ConnectionString);
+                    var userRepo = new UserRepo(ConnectionString);
 
-                    var responseString = "";
                     if (request.HttpMethod == "GET")
-                        responseString = GetMethods(request, userRepo);
+                        GetMethods(request, response, userRepo);
                     else if (request.HttpMethod == "POST")
-                        responseString = PostMethods(request, userRepo);
+                        PostMethods(request, response, userRepo);
                     else if (request.HttpMethod == "PUT")
-                        responseString = PutMethods(request, userRepo);
-                    else if (request.HttpMethod == "DELETE") responseString = DeleteMethods(request, userRepo);
-
-                    if (responseString == "User not found.")
-                    {
-                        //Code 404
-                        response.StatusCode = (int)HttpStatusCode.NotFound;
-                    }else if (responseString == "User successfully created")
-                    {
-                        //Code 201
-                        response.StatusCode = (int)HttpStatusCode.Created;
-                    }else if(responseString == "User with the username already registred")
-                    {
-                        //Code 409
-                        response.StatusCode = (int)HttpStatusCode.Conflict;
-                    }else if (responseString == "User unauthorized")
-                    {
-                        //Code 401
-                        response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                    }
-                    else if (responseString == "Data successfully retrieved")
-                    {
-                        //Code 200
-                        response.StatusCode = (int)HttpStatusCode.OK;
-                    }
-                    else if (responseString == "Provided user is not admin")
-                    {
-                        //403
-                        response.StatusCode = (int)HttpStatusCode.Forbidden;
-                    }
-                    else if (responseString == "The request was fine, but the user doesn't have any cards")
-                    {
-                        //204
-                        response.StatusCode = (int)HttpStatusCode.NoContent;
-                    }
-
-                    var buffer = Encoding.UTF8.GetBytes(responseString);
-                    response.ContentLength64 = buffer.Length;
-                    var output = response.OutputStream;
-                    output.Write(buffer, 0, buffer.Length);
-                    output.Close();
+                        PutMethods(request, response, userRepo);
+                    else if (request.HttpMethod == "DELETE")
+                        DeleteMethods(request, response, userRepo);
                 }, null);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: " + ex.Message);
+                Console.WriteLine("Error in RunServer(): " + ex.Message);
             }
     }
 
-    public string GetMethods(HttpListenerRequest request, UserRepo userRepo)
+    public void GetMethods(HttpListenerRequest request, HttpListenerResponse response, UserRepo userRepo)
     {
-        var response = "";
+        var objectResponse = "";
         if (request.Url.AbsolutePath.StartsWith("/users/"))
         {
             //Get /{username}
             var username = request.Url.AbsolutePath.Substring("/users/".Length);
-            List<User> users = (List<User>)userRepo.GetAll();
+            var users = (List<User>)userRepo.GetAll();
 
             //Using LINQ to save the user in foundUser
             var foundUser = users.FirstOrDefault(user => user.Username == username);
 
+            //USER NEEDS TO AUTHORIZE !!! User der sich selbst sucht oder Admin
+
             if (foundUser != null)
             {
-                /* //Send created user
-                 var jsonResponse = JsonConvert.SerializeObject(foundUser);
-                 response = jsonResponse;
-                */
-                response = "Data successfully retrieved";
+                //Send created user
+                objectResponse = JsonConvert.SerializeObject(foundUser);
+                response.StatusDescription = "Data successfully retrieved";
             }
             else
             {
-                response = "User not found.";
+                response.StatusDescription = "User not found.";
             }
         }
         else if (request.Url.AbsolutePath == "/deck")
         {
-            response = "Get /deck";
+            response.StatusDescription = "Get /deck";
         }
         else if (request.Url.AbsolutePath == "/cards")
         {
-            response = "Get /cards";
+            response.StatusDescription = "Get /cards";
         }
         else if (request.Url.AbsolutePath == "/stats")
         {
-            response = "Get /stats";
+            response.StatusDescription = "Get /stats";
         }
         else if (request.Url.AbsolutePath == "/scoreboard")
         {
-            response = "Get /scoreboard";
+            response.StatusDescription = "Get /scoreboard";
         }
         else if (request.Url.AbsolutePath == "/tradings")
         {
-            response = "Get /tradings";
+            response.StatusDescription = "Get /tradings";
         }
 
-        return response;
+        CreateAndSendResponse(response, objectResponse);
     }
 
-    public string PostMethods(HttpListenerRequest request, UserRepo userRepo)
+    public void PostMethods(HttpListenerRequest request, HttpListenerResponse response, UserRepo userRepo)
     {
-        var response = "";
+        var objectResponse = "";
         if (request.Url.AbsolutePath == "/TEST")
-        {
-            using (StreamReader reader = new StreamReader(request.InputStream))
+            using (var reader = new StreamReader(request.InputStream))
             {
-                string requestBody = reader.ReadToEnd();
-                User user = JsonConvert.DeserializeObject<User>(requestBody);
+                var requestBody = reader.ReadToEnd();
+                var user = JsonConvert.DeserializeObject<User>(requestBody);
 
-                response = $"POST-Anfrage für /createUser empfangen: Username = {user.Username}, Password = {user.PasswordHash}";
+                response.StatusDescription =
+                    $"POST-Anfrage für /createUser empfangen: Username = {user.Username}, Password = {user.PasswordHash}";
             }
-        
-    }
         else if (request.Url.AbsolutePath == "/users")
-        {
             using (var reader = new StreamReader(request.InputStream))
             {
                 var requestBody = reader.ReadToEnd();
                 var postUser = JsonConvert.DeserializeObject<User>(requestBody);
 
-                if (postUser == null)
-                {
-                    return "No body";
-                }
-                List<User> users = (List<User>)userRepo.GetAll();
+                if (postUser == null) return;
+
+                //Get all users
+                var users = (List<User>)userRepo.GetAll();
 
                 //Using LINQ to save the user in foundUser
                 var foundUser = users.FirstOrDefault(user => user.Username == postUser.Username);
@@ -179,48 +136,91 @@ public class Server
                 {
                     userRepo.Add(postUser);
 
-                    response = "Data successfully created";
+                    response.StatusDescription = "User successfully created";
                 }
                 else
                 {
-                    response = "User with same username already registered";
+                    response.StatusDescription = "User with same username already registered";
                 }
             }
-        }
         else if (request.Url.AbsolutePath == "/sessions")
-            response = "Post /sessions";
+            response.StatusDescription = "Post /sessions";
         else if (request.Url.AbsolutePath == "/transactions/packages")
-            response = "Post /transactions/packages";
+            response.StatusDescription = "Post /transactions/packages";
         else if (request.Url.AbsolutePath == "/tradings")
-            response = "Post /tradings";
+            response.StatusDescription = "Post /tradings";
         else if (request.Url.AbsolutePath == "/packages")
-            response = "Post /packages";
+            response.StatusDescription = "Post /packages";
         else if (request.Url.AbsolutePath == "/battles")
-            response = "Post /battles";
+            response.StatusDescription = "Post /battles";
         else if (request.Url.AbsolutePath == "/tradings")
-            response = "Post /tradings";
-        else if (request.Url.AbsolutePath.StartsWith("/tradings/")) response = "Post /tradings/{tradingdealid}";
+            response.StatusDescription = "Post /tradings";
+        else if (request.Url.AbsolutePath.StartsWith("/tradings/"))
+            response.StatusDescription = "Post /tradings/{tradingdealid}";
 
-        return response;
+        CreateAndSendResponse(response, objectResponse);
     }
 
-    public string PutMethods(HttpListenerRequest request, UserRepo userRepo)
+    public void PutMethods(HttpListenerRequest request, HttpListenerResponse response, UserRepo userRepo)
     {
-        var response = "";
+        var objectResponse = "";
         if (request.Url.AbsolutePath == "/users")
-            response = "Put /users";
+            objectResponse = "Put /users";
         else if (request.Url.AbsolutePath.StartsWith("/users/"))
-            response = "Put /users/{username}";
-        else if (request.Url.AbsolutePath == "/deck") response = "Put /deck";
+            objectResponse = "Put /users/{username}";
+        else if (request.Url.AbsolutePath == "/deck") objectResponse = "Put /deck";
 
-        return response;
+        CreateAndSendResponse(response, objectResponse);
     }
 
-    public string DeleteMethods(HttpListenerRequest request, UserRepo userRepo)
+    public void DeleteMethods(HttpListenerRequest request, HttpListenerResponse response, UserRepo userRepo)
     {
-        var response = "";
+        var objectResponse = "";
 
-        if (request.Url.AbsolutePath.StartsWith("/tradings/")) response = "Delete /tradings/{tradingdealid}";
-        return response;
+        if (request.Url.AbsolutePath.StartsWith("/tradings/"))
+            objectResponse = "Delete /tradings/{tradingdealid}";
+
+        CreateAndSendResponse(response, objectResponse);
+    }
+
+    private void CreateAndSendResponse(HttpListenerResponse response, string objectResponse)
+    {
+        response.StatusCode = GetStatusCode(response);
+        //response.StatusDescription = description;
+        response.ContentType = "application/json";
+
+        var buffer = Encoding.UTF8.GetBytes(objectResponse);
+        response.ContentLength64 = buffer.Length;
+        var output = response.OutputStream;
+        output.Write(buffer, 0, buffer.Length);
+        output.Close();
+    }
+
+    private int GetStatusCode(HttpListenerResponse response)
+    {
+        //Console.WriteLine(response.StatusDescription);
+        if (response.StatusDescription == "User not found.")
+            //Code 404
+            return (int)HttpStatusCode.NotFound;
+        if (response.StatusDescription == "User successfully created")
+            //Code 201
+            return (int)HttpStatusCode.Created;
+        if (response.StatusDescription == "User with same username already registered")
+            //Code 409
+            return (int)HttpStatusCode.Conflict;
+        if (response.StatusDescription == "User unauthorized")
+            //Code 401
+            return (int)HttpStatusCode.Unauthorized;
+        if (response.StatusDescription == "Data successfully retrieved")
+            //Code 200
+            return (int)HttpStatusCode.OK;
+        if (response.StatusDescription == "Provided user is not admin")
+            //403
+            return (int)HttpStatusCode.Forbidden;
+        if (response.StatusDescription == "The request was fine, but the user doesn't have any cards")
+            //204
+            return (int)HttpStatusCode.NoContent;
+
+        return (int)HttpStatusCode.Unused;
     }
 }
