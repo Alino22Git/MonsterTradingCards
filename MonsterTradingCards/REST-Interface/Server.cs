@@ -164,11 +164,29 @@ public class Server
     public void PutMethods(HttpListenerRequest request, HttpListenerResponse response, UserRepo userRepo)
     {
         var objectResponse = "";
-        if (request.Url.AbsolutePath == "/users")
-            objectResponse = "Put /users";
-        else if (request.Url.AbsolutePath.StartsWith("/users/"))
-            objectResponse = "Put /users/{username}";
-        else if (request.Url.AbsolutePath == "/deck") objectResponse = "Put /deck";
+        if (request.Url.AbsolutePath.StartsWith("/users/"))
+        {
+            var username = request.Url.AbsolutePath.Substring("/users/".Length);
+            var users = (List<User>)userRepo.GetAll();
+
+            var foundUser = users.FirstOrDefault(user => user.Username == username);
+
+            //USER NEEDS TO AUTHORIZE !!! User der sich selbst sucht oder Admin
+
+            if (foundUser != null)
+            {
+                objectResponse = JsonConvert.SerializeObject(foundUser);
+                response.StatusDescription = "Data successfully retrieved";
+            }
+            else
+            {
+                response.StatusDescription = "User not found.";
+            }
+
+            response.StatusDescription = "Put /users/{username}";
+        }
+        else if (request.Url.AbsolutePath == "/deck") 
+            response.StatusDescription = "Put /deck";
 
         CreateAndSendResponse(response, objectResponse);
     }
