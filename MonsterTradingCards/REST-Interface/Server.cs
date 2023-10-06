@@ -1,244 +1,292 @@
-﻿using System.Net;
-using System.Text;
-using MonsterTradingCards.BasicClasses;
+﻿using MonsterTradingCards.BasicClasses;
 using MonsterTradingCards.Repository;
 using Newtonsoft.Json;
+using System.IO;
+using System.Net;
+using System.Net.Sockets;
 
-namespace MonsterTradingCards.REST_Interface;
-
-public class Server
+namespace MonsterTradingCards.REST_Interface
 {
-    public Server(string Con)
+    public class Server
     {
-        ConnectionString = Con;
-    }
+        private readonly string ConnectionString;
+        private readonly int Port = 10001;
+        private readonly TcpListener listener;
 
-    public string ConnectionString { get; }
+        public Server(string con)
+        {
+            ConnectionString = con;
+            listener = new TcpListener(IPAddress.Loopback, Port);
+        }
 
-    public void RunServer()
-    {
-        //Define a port/url for the server
-        var url = "http://localhost:10001/";
+        public void RunServer()
+        {
+            listener.Start();
+            Console.WriteLine($"Server running. Waiting for Requests...");
 
-        //Create HttpListener
-        var listener = new HttpListener();
-        listener.Prefixes.Add(url);
-        listener.Start();
-
-        Console.WriteLine("Server running. Waiting for Requests...");
-
-        //Server running in a loop
-        while (true)
-            try
+            while (true)
             {
-                //Wait for request
-                var context = listener.GetContext();
-
-                // Verarbeiten Sie die Anforderung in einem separaten Thread
-                ThreadPool.QueueUserWorkItem(o =>
+                try
                 {
-                    var request = context.Request;
-                    var response = context.Response;
-                    var userRepo = new UserRepo(ConnectionString);
+                    using (TcpClient client = listener.AcceptTcpClient())
+                    using (NetworkStream stream = client.GetStream())
+                    using (StreamReader reader = new StreamReader(stream))
+                    using (StreamWriter writer = new StreamWriter(stream) { AutoFlush = true })
+                    {
+                        string requestLine = reader.ReadLine();
+                        if (!string.IsNullOrEmpty(requestLine))
+                        {
+                            string[] parts = requestLine.Split(' ');
+                            if (parts.Length == 3)
+                            {
+                                string httpMethod = parts[0];
+                                string path = parts[1];
 
-                    if (request.HttpMethod == "GET")
-                        GetMethods(request, response, userRepo);
-                    else if (request.HttpMethod == "POST")
-                        PostMethods(request, response, userRepo);
-                    else if (request.HttpMethod == "PUT")
-                        PutMethods(request, response, userRepo);
-                    else if (request.HttpMethod == "DELETE")
-                        DeleteMethods(request, response, userRepo);
-                }, null);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error in RunServer(): " + ex.Message);
-            }
-    }
+                                Console.WriteLine($"Received request: {httpMethod} {path}");
 
-    public void GetMethods(HttpListenerRequest request, HttpListenerResponse response, UserRepo userRepo)
-    {
-        var objectResponse = "";
-        if (request.Url.AbsolutePath.StartsWith("/users/"))
-        {
-            //Get /{username}
-            var username = request.Url.AbsolutePath.Substring("/users/".Length);
-            var users = (List<User>)userRepo.GetAll();
+                                var userRepo = new UserRepo(ConnectionString);
 
-            //Using LINQ to save the user in foundUser
-            var foundUser = users.FirstOrDefault(user => user.Username == username);
-
-            //USER NEEDS TO AUTHORIZE !!! User der sich selbst sucht oder Admin
-
-            if (foundUser != null)
-            {
-                //Send created user
-                objectResponse = JsonConvert.SerializeObject(foundUser);
-                response.StatusDescription = "Data successfully retrieved";
-            }
-            else
-            {
-                response.StatusDescription = "User not found.";
+                                if (httpMethod == "GET")
+                                    GetMethods(path, writer, userRepo);
+                                else if (httpMethod == "POST")
+                                    PostMethods(path, reader, writer, userRepo);
+                                else if (httpMethod == "PUT")
+                                    PutMethods(path, writer, userRepo);
+                                else if (httpMethod == "DELETE")
+                                    DeleteMethods(path, writer, userRepo);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error in RunServer(): " + ex.Message);
+                }
             }
         }
-        else if (request.Url.AbsolutePath == "/deck")
-        {
-            response.StatusDescription = "Get /deck";
-        }
-        else if (request.Url.AbsolutePath == "/cards")
-        {
-            response.StatusDescription = "Get /cards";
-        }
-        else if (request.Url.AbsolutePath == "/stats")
-        {
-            response.StatusDescription = "Get /stats";
-        }
-        else if (request.Url.AbsolutePath == "/scoreboard")
-        {
-            response.StatusDescription = "Get /scoreboard";
-        }
-        else if (request.Url.AbsolutePath == "/tradings")
-        {
-            response.StatusDescription = "Get /tradings";
-        }
 
-        CreateAndSendResponse(response, objectResponse);
-    }
-
-    public void PostMethods(HttpListenerRequest request, HttpListenerResponse response, UserRepo userRepo)
-    {
-        var objectResponse = "";
-        if (request.Url.AbsolutePath == "/TEST")
-            using (var reader = new StreamReader(request.InputStream))
+        public void GetMethods(string path, StreamWriter writer, UserRepo userRepo)
+        {
+            var objectResponse = "";
+            if (path.StartsWith("/users/"))
             {
-                var requestBody = reader.ReadToEnd();
-                var user = JsonConvert.DeserializeObject<User>(requestBody);
-
-                response.StatusDescription =
-                    $"POST-Anfrage für /createUser empfangen: Username = {user.Username}, Password = {user.PasswordHash}";
-            }
-        else if (request.Url.AbsolutePath == "/users")
-            using (var reader = new StreamReader(request.InputStream))
-            {
-                var requestBody = reader.ReadToEnd();
-                var postUser = JsonConvert.DeserializeObject<User>(requestBody);
-
-                if (postUser == null) return;
-
-                //Get all users
+                //Get /{username}
+                var username = path.Substring("/users/".Length);
                 var users = (List<User>)userRepo.GetAll();
 
                 //Using LINQ to save the user in foundUser
-                var foundUser = users.FirstOrDefault(user => user.Username == postUser.Username);
+                var foundUser = users.FirstOrDefault(user => user.Username == username);
 
-                if (foundUser == null)
+                //USER NEEDS TO AUTHORIZE !!! User der sich selbst sucht oder Admin
+
+                if (foundUser != null)
                 {
-                    userRepo.Add(postUser);
-
-                    response.StatusDescription = "User successfully created";
+                    //Send created user
+                    objectResponse = JsonConvert.SerializeObject(foundUser);
+                    writer.WriteLine("HTTP/1.1 200 OK");
+                    writer.WriteLine("Content-Type: application/json");
                 }
                 else
                 {
-                    response.StatusDescription = "User with same username already registered";
+                    writer.WriteLine("HTTP/1.1 404 Not Found");
                 }
             }
-        else if (request.Url.AbsolutePath == "/sessions")
-            response.StatusDescription = "Post /sessions";
-        else if (request.Url.AbsolutePath == "/transactions/packages")
-            response.StatusDescription = "Post /transactions/packages";
-        else if (request.Url.AbsolutePath == "/tradings")
-            response.StatusDescription = "Post /tradings";
-        else if (request.Url.AbsolutePath == "/packages")
-            response.StatusDescription = "Post /packages";
-        else if (request.Url.AbsolutePath == "/battles")
-            response.StatusDescription = "Post /battles";
-        else if (request.Url.AbsolutePath == "/tradings")
-            response.StatusDescription = "Post /tradings";
-        else if (request.Url.AbsolutePath.StartsWith("/tradings/"))
-            response.StatusDescription = "Post /tradings/{tradingdealid}";
-
-        CreateAndSendResponse(response, objectResponse);
-    }
-
-    public void PutMethods(HttpListenerRequest request, HttpListenerResponse response, UserRepo userRepo)
-    {
-        var objectResponse = "";
-        if (request.Url.AbsolutePath.StartsWith("/users/"))
-        {
-            var username = request.Url.AbsolutePath.Substring("/users/".Length);
-            var users = (List<User>)userRepo.GetAll();
-
-            var foundUser = users.FirstOrDefault(user => user.Username == username);
-
-            //USER NEEDS TO AUTHORIZE !!! User der sich selbst sucht oder Admin
-
-            if (foundUser != null)
+            else if (path == "/deck")
             {
-                objectResponse = JsonConvert.SerializeObject(foundUser);
-                response.StatusDescription = "Data successfully retrieved";
+                writer.WriteLine("HTTP/1.1 200 OK");
+                writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine("Get /deck");
             }
-            else
+            else if (path == "/cards")
             {
-                response.StatusDescription = "User not found.";
+                writer.WriteLine("HTTP/1.1 200 OK");
+                writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine("Get /cards");
+            }
+            else if (path == "/stats")
+            {
+                writer.WriteLine("HTTP/1.1 200 OK");
+                writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine("Get /stats");
+            }
+            else if (path == "/scoreboard")
+            {
+                writer.WriteLine("HTTP/1.1 200 OK");
+                writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine("Get /scoreboard");
+            }
+            else if (path == "/tradings")
+            {
+                writer.WriteLine("HTTP/1.1 200 OK");
+                writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine("Get /tradings");
             }
 
-            response.StatusDescription = "Put /users/{username}";
+            CreateAndSendResponse(writer, objectResponse);
         }
-        else if (request.Url.AbsolutePath == "/deck") 
-            response.StatusDescription = "Put /deck";
 
-        CreateAndSendResponse(response, objectResponse);
-    }
+        public void PostMethods(string path, StreamReader reader, StreamWriter writer, UserRepo userRepo)
+        {
+            var objectResponse = "";
+            if (path == "/TEST")
+            {
+                using (var requestBodyReader = new StreamReader(reader.BaseStream))
+                {
+                    var requestBody = requestBodyReader.ReadToEnd();
+                    var user = JsonConvert.DeserializeObject<User>(requestBody);
 
-    public void DeleteMethods(HttpListenerRequest request, HttpListenerResponse response, UserRepo userRepo)
-    {
-        var objectResponse = "";
+                    writer.WriteLine("HTTP/1.1 200 OK");
+                    writer.WriteLine("Content-Type: text/plain");
+                    writer.WriteLine($"POST-Anfrage für /createUser empfangen: Username = {user.Username}, Password = {user.PasswordHash}");
+                }
+            }
+            else if (path == "/users")
+            {
 
-        if (request.Url.AbsolutePath.StartsWith("/tradings/"))
-            objectResponse = "Delete /tradings/{tradingdealid}";
+                using (var requestBodyReader = new StreamReader(reader.BaseStream))
+                {
+                    try
+                    {
+                        var requestBody = requestBodyReader.ReadToEnd();
+                        Console.WriteLine("Received request body: " + requestBody);
 
-        CreateAndSendResponse(response, objectResponse);
-    }
+                        var postUser = JsonConvert.DeserializeObject<User>(requestBody);
 
-    private void CreateAndSendResponse(HttpListenerResponse response, string objectResponse)
-    {
-        response.StatusCode = GetStatusCode(response);
-        //response.StatusDescription = description;
-        response.ContentType = "application/json";
+                        if (postUser == null)
+                        {
+                            Console.WriteLine("Could not convert JSON to User!");
+                            // Hier können Sie eine geeignete Fehlerantwort an den Client senden
+                            writer.WriteLine("HTTP/1.1 400 Bad Request");
+                            writer.WriteLine("Content-Type: text/plain");
+                            writer.WriteLine("Invalid JSON data");
+                        }
+                        else
+                        {
+                            // Rest Ihres Codes zur Verarbeitung des Request-Bodys
+                            // ...
 
-        var buffer = Encoding.UTF8.GetBytes(objectResponse);
-        response.ContentLength64 = buffer.Length;
-        var output = response.OutputStream;
-        output.Write(buffer, 0, buffer.Length);
-        output.Close();
-    }
+                            // Hier können Sie eine erfolgreiche Antwort an den Client senden
+                            writer.WriteLine("HTTP/1.1 201 Created");
+                            writer.WriteLine("Content-Type: text/plain");
+                            writer.WriteLine("User successfully created");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error reading or processing request body: " + ex.Message);
+                        // Hier können Sie eine geeignete Fehlerantwort an den Client senden
+                        writer.WriteLine("HTTP/1.1 500 Internal Server Error");
+                        writer.WriteLine("Content-Type: text/plain");
+                        writer.WriteLine("An error occurred while processing the request");
+                    }
+                    finally
+                    {
+                        requestBodyReader.Close(); // Hier den Stream schließen
+                    }
+                }
+            }
+            else if (path == "/sessions")
+            {
+                writer.WriteLine("HTTP/1.1 200 OK");
+                writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine("Post /sessions");
+            }
+            else if (path == "/transactions/packages")
+            {
+                writer.WriteLine("HTTP/1.1 200 OK");
+                writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine("Post /transactions/packages");
+            }
+            else if (path == "/tradings")
+            {
+                writer.WriteLine("HTTP/1.1 200 OK");
+                writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine("Post /tradings");
+            }
+            else if (path == "/packages")
+            {
+                writer.WriteLine("HTTP/1.1 200 OK");
+                writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine("Post /packages");
+            }
+            else if (path == "/battles")
+            {
+                writer.WriteLine("HTTP/1.1 200 OK");
+                writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine("Post /battles");
+            }
+            else if (path == "/tradings")
+            {
+                writer.WriteLine("HTTP/1.1 200 OK");
+                writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine("Post /tradings");
+            }
+            else if (path.StartsWith("/tradings/"))
+            {
+                writer.WriteLine("HTTP/1.1 200 OK");
+                writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine("Post /tradings/{tradingdealid}");
+            }
 
-    private int GetStatusCode(HttpListenerResponse response)
-    {
-        //Console.WriteLine(response.StatusDescription);
-        if (response.StatusDescription == "User not found.")
-            //Code 404
-            return (int)HttpStatusCode.NotFound;
-        if (response.StatusDescription == "User successfully created")
-            //Code 201
-            return (int)HttpStatusCode.Created;
-        if (response.StatusDescription == "User with same username already registered")
-            //Code 409
-            return (int)HttpStatusCode.Conflict;
-        if (response.StatusDescription == "User unauthorized")
-            //Code 401
-            return (int)HttpStatusCode.Unauthorized;
-        if (response.StatusDescription == "Data successfully retrieved")
-            //Code 200
-            return (int)HttpStatusCode.OK;
-        if (response.StatusDescription == "Provided user is not admin")
-            //403
-            return (int)HttpStatusCode.Forbidden;
-        if (response.StatusDescription == "The request was fine, but the user doesn't have any cards")
-            //204
-            return (int)HttpStatusCode.NoContent;
+            CreateAndSendResponse(writer, objectResponse);
+        }
 
-        return (int)HttpStatusCode.Unused;
+        public void PutMethods(string path, StreamWriter writer, UserRepo userRepo)
+        {
+            var objectResponse = "";
+            if (path.StartsWith("/users/"))
+            {
+                var username = path.Substring("/users/".Length);
+                var users = (List<User>)userRepo.GetAll();
+
+                var foundUser = users.FirstOrDefault(user => user.Username == username);
+
+                //USER NEEDS TO AUTHORIZE !!! User der sich selbst sucht oder Admin
+
+                if (foundUser != null)
+                {
+                    objectResponse = JsonConvert.SerializeObject(foundUser);
+                    writer.WriteLine("HTTP/1.1 200 OK");
+                    writer.WriteLine("Content-Type: application/json");
+                    writer.WriteLine("Data successfully retrieved");
+                }
+                else
+                {
+                    writer.WriteLine("HTTP/1.1 404 Not Found");
+                }
+
+                writer.WriteLine("HTTP/1.1 200 OK");
+                writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine("Put /users/{username}");
+            }
+            else if (path == "/deck")
+            {
+                writer.WriteLine("HTTP/1.1 200 OK");
+                writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine("Put /deck");
+            }
+
+            CreateAndSendResponse(writer, objectResponse);
+        }
+
+        public void DeleteMethods(string path, StreamWriter writer, UserRepo userRepo)
+        {
+            var objectResponse = "";
+
+            if (path.StartsWith("/tradings/"))
+            {
+                objectResponse = "Delete /tradings/{tradingdealid}";
+            }
+
+            CreateAndSendResponse(writer, objectResponse);
+        }
+
+        private void CreateAndSendResponse(StreamWriter writer, string objectResponse)
+        {
+            writer.WriteLine();
+            writer.WriteLine(objectResponse);
+            Console.WriteLine("Pushed Response");
+            writer.Close();
+        }
     }
 }
