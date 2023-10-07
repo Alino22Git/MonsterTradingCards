@@ -12,11 +12,9 @@ public interface IRepository<T>
 
     IEnumerable<T> GetAll();
 
-    // CREATE
-    void Add(T t);
 
     // UPDATE
-    void Update(T t, string[] parameters);
+    void Update(T t);
 
     // DELETE
     void Delete(T t);

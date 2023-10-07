@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using MonsterTradingCards.BasicClasses;
 using MonsterTradingCards.Repository;
@@ -6,9 +7,9 @@ using Newtonsoft.Json;
 
 namespace MonsterTradingCards.REST_Interface;
 
-public class Server1
+public class Server
 {
-    public Server1(string Con)
+    public Server(string Con)
     {
         ConnectionString = Con;
     }
@@ -29,6 +30,7 @@ public class Server1
                                             //using var reader = new StreamReader(clientSocket.GetStream());
                                             // string? line;
                                             //While(line=reader.Readline())!=null){Console.Writeline(line);}
+
         Console.WriteLine("Server running. Waiting for Requests...");
 
         //Server running in a loop
@@ -120,7 +122,7 @@ public class Server1
                 var user = JsonConvert.DeserializeObject<User>(requestBody);
 
                 response.StatusDescription =
-                    $"POST-Anfrage für /createUser empfangen: Username = {user.Username}, Password = {user.PasswordHash}";
+                    $"POST-Anfrage für /createUser empfangen: Username = {user.Username}, Password = {user.Password}";
             }
         else if (request.Url.AbsolutePath == "/users")
             using (var reader = new StreamReader(request.InputStream))
@@ -138,7 +140,7 @@ public class Server1
 
                 if (foundUser == null)
                 {
-                    userRepo.Add(postUser);
+                    userRepo.AddUserCredentials(postUser);
 
                     response.StatusDescription = "User successfully created";
                 }
@@ -148,7 +150,33 @@ public class Server1
                 }
             }
         else if (request.Url.AbsolutePath == "/sessions")
-            response.StatusDescription = "Post /sessions";
+        {
+            using (var reader = new StreamReader(request.InputStream))
+            {
+                var requestBody = reader.ReadToEnd();
+                var postUser = JsonConvert.DeserializeObject<User>(requestBody);
+
+                if (postUser == null) return;
+
+                //Get all users
+                var users = (List<User>)userRepo.GetAll();
+
+                //Using LINQ to save the user in foundUser
+                var foundUser = users.FirstOrDefault(user => user.Username == postUser.Username);
+
+                if (foundUser != null && foundUser.Password==postUser.Password)
+                {
+                    foundUser.Token = foundUser.Username + "-mtcgToken";
+                    userRepo.Update(foundUser);
+                    objectResponse = JsonConvert.SerializeObject(foundUser.Token);
+                    response.StatusDescription = "User login successfull";
+                }
+                else
+                {
+                    response.StatusDescription = "Invalid username/password provided";
+                }
+            }
+        }
         else if (request.Url.AbsolutePath == "/transactions/packages")
             response.StatusDescription = "Post /transactions/packages";
         else if (request.Url.AbsolutePath == "/tradings")
@@ -170,24 +198,33 @@ public class Server1
         var objectResponse = "";
         if (request.Url.AbsolutePath.StartsWith("/users/"))
         {
-            var username = request.Url.AbsolutePath.Substring("/users/".Length);
-            var users = (List<User>)userRepo.GetAll();
-
-            var foundUser = users.FirstOrDefault(user => user.Username == username);
-
-            //USER NEEDS TO AUTHORIZE !!! User der sich selbst sucht oder Admin
-
-            if (foundUser != null)
+            using (var reader = new StreamReader(request.InputStream))
             {
-                objectResponse = JsonConvert.SerializeObject(foundUser);
-                response.StatusDescription = "Data successfully retrieved";
-            }
-            else
-            {
-                response.StatusDescription = "User not found.";
-            }
+                var requestBody = reader.ReadToEnd();
+                var postUser = JsonConvert.DeserializeObject<User>(requestBody);
 
-            response.StatusDescription = "Put /users/{username}";
+                if (postUser == null) return;
+
+                var username = request.Url.AbsolutePath.Substring("/users/".Length);
+                var users = (List<User>)userRepo.GetAll();
+
+                var foundUser = users.FirstOrDefault(user => user.Username == username);
+
+                //USER NEEDS TO AUTHORIZE !!! User der sich selbst sucht oder Admin
+
+                if (foundUser != null)
+                {
+                    foundUser.Bio = postUser.Bio;
+                    foundUser.Name = postUser.Name;
+                    foundUser.Image = postUser.Image;
+                    userRepo.Update(foundUser);
+                    response.StatusDescription = "User sucessfully updated";
+                }
+                else
+                {
+                    response.StatusDescription = "User not found.";
+                }
+            }
         }
         else if (request.Url.AbsolutePath == "/deck") 
             response.StatusDescription = "Put /deck";
@@ -230,10 +267,10 @@ public class Server1
         if (response.StatusDescription == "User with same username already registered")
             //Code 409
             return (int)HttpStatusCode.Conflict;
-        if (response.StatusDescription == "User unauthorized")
+        if (response.StatusDescription == "User unauthorized"|| response.StatusDescription== "Invalid username/password provided")
             //Code 401
             return (int)HttpStatusCode.Unauthorized;
-        if (response.StatusDescription == "Data successfully retrieved")
+        if (response.StatusDescription == "Data successfully retrieved"|| response.StatusDescription == "User sucessfully updated"||response.StatusDescription== "User login successfull")
             //Code 200
             return (int)HttpStatusCode.OK;
         if (response.StatusDescription == "Provided user is not admin")

@@ -7,13 +7,13 @@ using System.Net.Sockets;
 
 namespace MonsterTradingCards.REST_Interface
 {
-    public class Server
+    public class Server1
     {
         private readonly string ConnectionString;
         private readonly int Port = 10001;
         private readonly TcpListener listener;
 
-        public Server(string con)
+        public Server1(string con)
         {
             ConnectionString = con;
             listener = new TcpListener(IPAddress.Loopback, Port);
@@ -137,7 +137,7 @@ namespace MonsterTradingCards.REST_Interface
 
                     writer.WriteLine("HTTP/1.1 200 OK");
                     writer.WriteLine("Content-Type: text/plain");
-                    writer.WriteLine($"POST-Anfrage für /createUser empfangen: Username = {user.Username}, Password = {user.PasswordHash}");
+                    writer.WriteLine($"POST-Anfrage für /createUser empfangen: Username = {user.Username}, Password = {user.Password}");
                 }
             }
             else if (path == "/users")
@@ -162,8 +162,6 @@ namespace MonsterTradingCards.REST_Interface
                         }
                         else
                         {
-                            // Rest Ihres Codes zur Verarbeitung des Request-Bodys
-                            // ...
 
                             // Hier können Sie eine erfolgreiche Antwort an den Client senden
                             writer.WriteLine("HTTP/1.1 201 Created");
@@ -286,7 +284,6 @@ namespace MonsterTradingCards.REST_Interface
             writer.WriteLine();
             writer.WriteLine(objectResponse);
             Console.WriteLine("Pushed Response");
-            writer.Close();
         }
     }
 }

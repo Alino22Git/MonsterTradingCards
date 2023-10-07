@@ -8,7 +8,7 @@ using NpgsqlTypes;
 
 
 namespace MonsterTradingCards.Repository;
-
+/*
 public class CardRepo : IRepository<Card>
     {
         public Card Get(int id)
@@ -21,10 +21,6 @@ public class CardRepo : IRepository<Card>
             throw new NotImplementedException();
         }
 
-        public void Add(Card t)
-        {
-            throw new NotImplementedException();
-        }
 
         public void Update(Card t, string[] parameters)
         {
@@ -36,4 +32,4 @@ public class CardRepo : IRepository<Card>
             throw new NotImplementedException();
         }
     }
-
+*/
