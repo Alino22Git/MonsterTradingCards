@@ -166,9 +166,9 @@ public class Server1
 
                 if (foundUser != null && foundUser.Password==postUser.Password)
                 {
-                    foundUser.Token = foundUser.Username + "-mtcgToken";
+                   // foundUser.Token = foundUser.Username + "-mtcgToken";
                     userRepo.Update(foundUser);
-                    objectResponse = JsonConvert.SerializeObject(foundUser.Token);
+                   // objectResponse = JsonConvert.SerializeObject(foundUser.Token);
                     response.StatusDescription = "User login successfull";
                 }
                 else
@@ -257,7 +257,7 @@ public class Server1
 
     private int GetStatusCode(HttpListenerResponse response)
     {
-        //Console.WriteLine(response.StatusDescription);
+        Console.WriteLine(response.StatusDescription);
         if (response.StatusDescription == "User not found.")
             //Code 404
             return (int)HttpStatusCode.NotFound;

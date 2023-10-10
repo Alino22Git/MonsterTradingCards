@@ -40,8 +40,7 @@ public class UserRepo : IRepository<User>
                             reader.GetString(2),
                             reader.GetString(3),
                             reader.GetString(4),
-                            reader.GetString(5),
-                            reader.GetString(6)
+                            reader.GetString(5)
                         );
                 }
             }
@@ -71,13 +70,11 @@ public class UserRepo : IRepository<User>
                         string bio = null;
                         string image = null;
                         var password = reader.GetString(5);
-                        string token = null;
                         if (!reader.IsDBNull(2)) name = reader.GetString(2);
                         if (!reader.IsDBNull(3)) bio = reader.GetString(3);
                         if (!reader.IsDBNull(4)) image = reader.GetString(4);
-                        if (!reader.IsDBNull(6)) token = reader.GetString(6);
 
-                        data.Add(new User(userId, username, name, bio, image, password, token));
+                        data.Add(new User(userId, username, name, bio, image, password));
                     }
                 }
             }
@@ -107,7 +104,7 @@ public class UserRepo : IRepository<User>
             {
                 connection.Open();
                 command.CommandText = @"UPDATE Player
-                                            SET username = @uname, name=@name, bio=@bio, image=@image, password = @pass, token = @token
+                                            SET username = @uname, name=@name, bio=@bio, image=@image, password = @pass
                                             WHERE userId = @id";
 
 
@@ -142,6 +139,7 @@ public class UserRepo : IRepository<User>
                 if (u.Image != null)
                     imageParameter.Value = u.Image;
                 else
+                    //DBNull is to represent null in the database
                     imageParameter.Value = DBNull.Value;
                 command.Parameters.Add(imageParameter);
 
@@ -149,16 +147,6 @@ public class UserRepo : IRepository<User>
                 passParameter.ParameterName = "pass";
                 passParameter.Value = u.Password;
                 command.Parameters.Add(passParameter);
-
-                var tokenParameter = command.CreateParameter();
-                tokenParameter.ParameterName = "token";
-                if (u.Token != null)
-                    tokenParameter.Value = u.Token;
-                else
-                    //DBNull is to represent null in the database
-                    tokenParameter.Value = DBNull.Value;
-
-                command.Parameters.Add(tokenParameter);
 
                 command.ExecuteNonQuery();
             }
@@ -223,8 +211,7 @@ public class UserRepo : IRepository<User>
                             name VARCHAR(50),
                             bio VARCHAR(50),
                             image VARCHAR(50),
-                            password VARCHAR(255) NOT NULL,
-                            token VARCHAR(255)
+                            password VARCHAR(255) NOT NULL
                         )
                     ";
                 cmd.ExecuteNonQuery();
@@ -239,8 +226,8 @@ public class UserRepo : IRepository<User>
             using (var command = connection.CreateCommand())
             {
                 connection.Open();
-                command.CommandText = @"INSERT INTO Player (username, password, token)
-                                    VALUES (@uname, @pass, @token)";
+                command.CommandText = @"INSERT INTO Player (username, password)
+                                    VALUES (@uname, @pass)";
 
 
                 //Parameter for username
@@ -255,17 +242,6 @@ public class UserRepo : IRepository<User>
                 passParameter.Value = u.Password;
                 command.Parameters.Add(passParameter);
 
-                //Parameter for token
-                var tokenParameter = command.CreateParameter();
-                tokenParameter.ParameterName = "token";
-
-                if (u.Token != null)
-                    tokenParameter.Value = u.Token;
-                else
-                    //DBNull is to represent null in the database
-                    tokenParameter.Value = DBNull.Value;
-
-                command.Parameters.Add(tokenParameter);
                 command.ExecuteNonQuery();
             }
         }

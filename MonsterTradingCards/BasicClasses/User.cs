@@ -8,13 +8,12 @@ public class User
     public string? Bio { set; get; }
     public string? Image { set; get; }
     public string? Password { set; get;}
-    public string Token { get; set; }
 
     public User()
     {
     }
 
-    public User(int userId, string? username, string? name, string? bio, string? image, string? password, string token)
+    public User(int userId, string? username, string? name, string? bio, string? image, string? password)
     {
         UserId = userId;
         Username = username;
@@ -22,6 +21,5 @@ public class User
         Bio = bio;
         Image = image;
         Password = password;
-        Token = token;
     }
 }
