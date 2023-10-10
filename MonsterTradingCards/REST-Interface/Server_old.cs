@@ -7,9 +7,9 @@ using Newtonsoft.Json;
 
 namespace MonsterTradingCards.REST_Interface;
 
-public class Server
+public class Server1
 {
-    public Server(string Con)
+    public Server1(string Con)
     {
         ConnectionString = Con;
     }

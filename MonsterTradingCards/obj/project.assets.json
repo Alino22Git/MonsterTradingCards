@@ -6168,11 +6168,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\hajra\\OneDrive\\FH-Technikum\\3.Semester\\POS\\MonsterTradingCards\\MonsterTradingCards\\MonsterTradingCards.csproj",
+      "projectUniqueName": "C:\\Users\\hajra\\Source\\Repos\\MonsterTradingCards\\MonsterTradingCards\\MonsterTradingCards.csproj",
       "projectName": "MonsterTradingCards",
-      "projectPath": "C:\\Users\\hajra\\OneDrive\\FH-Technikum\\3.Semester\\POS\\MonsterTradingCards\\MonsterTradingCards\\MonsterTradingCards.csproj",
+      "projectPath": "C:\\Users\\hajra\\Source\\Repos\\MonsterTradingCards\\MonsterTradingCards\\MonsterTradingCards.csproj",
       "packagesPath": "C:\\Users\\hajra\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\hajra\\OneDrive\\FH-Technikum\\3.Semester\\POS\\MonsterTradingCards\\MonsterTradingCards\\obj\\",
+      "outputPath": "C:\\Users\\hajra\\Source\\Repos\\MonsterTradingCards\\MonsterTradingCards\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -6242,7 +6242,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.202\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.400\\RuntimeIdentifierGraph.json"
       }
     }
   }

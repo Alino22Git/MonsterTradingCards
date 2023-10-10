@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Bex5JFTPie+753rgQ6rAPRmPxBcSU536FYOOqqTVE6Ht3qKxuOAvoQI4Snd543Nd5YRZmHx1xh0NRWGb6B1tfg==",
+  "dgSpecHash": "+lgDAdAPz93o/TvxbOQp/JgsO+zwDXGm4xSi55qOdCf1wwyaa7TGFBYNRj3EZgINC9f7A+YC7o7WJuNCFjlo3Q==",
   "success": true,
-  "projectFilePath": "C:\\Users\\hajra\\OneDrive\\FH-Technikum\\3.Semester\\POS\\MonsterTradingCards\\MonsterTradingCards\\MonsterTradingCards.csproj",
+  "projectFilePath": "C:\\Users\\hajra\\Source\\Repos\\MonsterTradingCards\\MonsterTradingCards\\MonsterTradingCards.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\hajra\\.nuget\\packages\\microsoft.aspnetcore.authentication.abstractions\\2.1.1\\microsoft.aspnetcore.authentication.abstractions.2.1.1.nupkg.sha512",
     "C:\\Users\\hajra\\.nuget\\packages\\microsoft.aspnetcore.authentication.core\\2.1.1\\microsoft.aspnetcore.authentication.core.2.1.1.nupkg.sha512",

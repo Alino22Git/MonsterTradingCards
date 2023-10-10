@@ -4,16 +4,17 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace MonsterTradingCards.REST_Interface
 {
-    public class Server1
+    public class Server
     {
         private readonly string ConnectionString;
         private readonly int Port = 10001;
         private readonly TcpListener listener;
 
-        public Server1(string con)
+        public Server(string con)
         {
             ConnectionString = con;
             listener = new TcpListener(IPAddress.Loopback, Port);
@@ -85,22 +86,26 @@ namespace MonsterTradingCards.REST_Interface
                     objectResponse = JsonConvert.SerializeObject(foundUser);
                     writer.WriteLine("HTTP/1.1 200 OK");
                     writer.WriteLine("Content-Type: application/json");
+                    writer.WriteLine();
                 }
                 else
                 {
                     writer.WriteLine("HTTP/1.1 404 Not Found");
+                    writer.WriteLine();
                 }
             }
             else if (path == "/deck")
             {
                 writer.WriteLine("HTTP/1.1 200 OK");
                 writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine();
                 writer.WriteLine("Get /deck");
             }
             else if (path == "/cards")
             {
                 writer.WriteLine("HTTP/1.1 200 OK");
                 writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine();
                 writer.WriteLine("Get /cards");
             }
             else if (path == "/stats")
@@ -132,17 +137,19 @@ namespace MonsterTradingCards.REST_Interface
             {
                 using (var requestBodyReader = new StreamReader(reader.BaseStream))
                 {
-                    var requestBody = requestBodyReader.ReadToEnd();
+
+                    var requestBody = ReadToEnd(ReadLength(reader),reader);
                     var user = JsonConvert.DeserializeObject<User>(requestBody);
 
                     writer.WriteLine("HTTP/1.1 200 OK");
                     writer.WriteLine("Content-Type: text/plain");
+                    writer.WriteLine();
                     writer.WriteLine($"POST-Anfrage für /createUser empfangen: Username = {user.Username}, Password = {user.Password}");
                 }
             }
-            else if (path == "/users")
+            else if (path.StartsWith("/users"))
             {
-
+                
                 using (var requestBodyReader = new StreamReader(reader.BaseStream))
                 {
                     try
@@ -158,6 +165,7 @@ namespace MonsterTradingCards.REST_Interface
                             // Hier können Sie eine geeignete Fehlerantwort an den Client senden
                             writer.WriteLine("HTTP/1.1 400 Bad Request");
                             writer.WriteLine("Content-Type: text/plain");
+                            writer.WriteLine();
                             writer.WriteLine("Invalid JSON data");
                         }
                         else
@@ -166,6 +174,7 @@ namespace MonsterTradingCards.REST_Interface
                             // Hier können Sie eine erfolgreiche Antwort an den Client senden
                             writer.WriteLine("HTTP/1.1 201 Created");
                             writer.WriteLine("Content-Type: text/plain");
+                            writer.WriteLine();
                             writer.WriteLine("User successfully created");
                         }
                     }
@@ -175,6 +184,7 @@ namespace MonsterTradingCards.REST_Interface
                         // Hier können Sie eine geeignete Fehlerantwort an den Client senden
                         writer.WriteLine("HTTP/1.1 500 Internal Server Error");
                         writer.WriteLine("Content-Type: text/plain");
+                        writer.WriteLine();
                         writer.WriteLine("An error occurred while processing the request");
                     }
                     finally
@@ -187,6 +197,7 @@ namespace MonsterTradingCards.REST_Interface
             {
                 writer.WriteLine("HTTP/1.1 200 OK");
                 writer.WriteLine("Content-Type: text/plain");
+                writer.WriteLine();
                 writer.WriteLine("Post /sessions");
             }
             else if (path == "/transactions/packages")
@@ -284,6 +295,49 @@ namespace MonsterTradingCards.REST_Interface
             writer.WriteLine();
             writer.WriteLine(objectResponse);
             Console.WriteLine("Pushed Response");
+        }
+
+        private String ReadToEnd(int len, StreamReader reader)
+        {
+            var data = new StringBuilder(200);
+            if (len > 0)
+            {
+                char[] chars = new char[1024];
+                int bytesReadTotal = 0;
+                while (bytesReadTotal < len)
+                {
+                    var bytesRead = reader.Read(chars, 0, chars.Length);
+                    bytesReadTotal += bytesRead;
+                    if (bytesRead == 0)
+                        break;
+                    data.Append(chars, 0, bytesRead);
+                }
+                Console.WriteLine(data.ToString());
+            }
+            return data.ToString();
+        }
+
+        private int ReadLength(StreamReader reader)
+        {
+            String? line;
+            int content_length = 0; // we need the content_length later, to be able to read the HTTP-content
+            while ((line = reader.ReadLine()) != null)
+            {
+                Console.WriteLine(line);
+                if (line == "")
+                {
+                    break;  // empty line indicates the end of the HTTP-headers
+                }
+
+                // Parse the header
+                var parts = line.Split(':');
+                if (parts.Length == 2 && parts[0] == "Content-Length")
+                {
+                    content_length = int.Parse(parts[1].Trim());
+                }
+            }
+            return content_length;
+
         }
     }
 }
