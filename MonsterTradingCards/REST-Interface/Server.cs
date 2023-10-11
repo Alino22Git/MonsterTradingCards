@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using MonsterTradingCards.BasicClasses;
 using MonsterTradingCards.Repository;
 using Newtonsoft.Json;
@@ -9,16 +10,16 @@ namespace MonsterTradingCards.REST_Interface;
 
 public class Server
 {
-    private readonly string ConnectionString;
+    private readonly string connectionString;
     private readonly TcpListener listener;
-    private readonly int Port = 10001;
-    private readonly List<string> tokenList = new();
+    private readonly int port = 10001;
+    private string token;
 
     public Server(string con)
     {
-        ConnectionString = con;
-        listener = new TcpListener(IPAddress.Loopback, Port);
-        tokenList.Add("admin-mtcgToken");
+        connectionString = con;
+        listener = new TcpListener(IPAddress.Loopback, port);
+        token = null;
     }
 
     public void RunServer()
@@ -42,13 +43,12 @@ public class Server
                         {
                             var httpMethod = parts[0];
                             var path = parts[1];
-
                             Console.WriteLine($"Received request: {httpMethod} {path}");
 
-                            var userRepo = new UserRepo(ConnectionString);
+                            var userRepo = new UserRepo(connectionString);
 
                             if (httpMethod == "GET")
-                                GetMethods(path, writer, userRepo);
+                                GetMethods(path, writer, reader, userRepo);
                             else if (httpMethod == "POST")
                                 PostMethods(path, reader, writer, userRepo);
                             else if (httpMethod == "PUT")
@@ -65,18 +65,20 @@ public class Server
             }
     }
 
-    public void GetMethods(string path, StreamWriter writer, UserRepo userRepo)
+    public void GetMethods(string path, StreamWriter writer, StreamReader reader, UserRepo userRepo)
     {
         var objectResponse = "";
         var responseType = "";
+        var requestBody = ReadToEnd(ReadLength(reader), reader);
+        var users = (List<User>)userRepo.GetAll();
+
         if (path.StartsWith("/users/"))
         {
             //Get /{username}
             var username = path.Substring("/users/".Length);
-            var users = (List<User>)userRepo.GetAll();
             var foundUser = users.FirstOrDefault(user => user.Username == username);
 
-            if (!tokenList.Contains(username + "-mtcgToken") || !tokenList.Contains("admin-mtcgToken"))
+            if (token != username + "-mtcgToken" && token != "admin-mtcgToken")
             {
                 responseType = "Access token is missing or invalid";
             }
@@ -113,20 +115,19 @@ public class Server
     {
         var objectResponse = "";
         var responseType = "";
+        var requestBody = ReadToEnd(ReadLength(reader), reader);
+        var postUser = JsonConvert.DeserializeObject<User>(requestBody);
+        var users = (List<User>)userRepo.GetAll();
 
         if (path == "/users")
         {
             //using (var requestBodyReader = new StreamReader(reader.BaseStream)) {
-            var requestBody = ReadToEnd(ReadLength(reader), reader);
-            var postUser = JsonConvert.DeserializeObject<User>(requestBody);
-
             if (postUser == null)
             {
                 responseType = "Invalid JSON data";
             }
             else
             {
-                var users = (List<User>)userRepo.GetAll();
                 var foundUser = users.FirstOrDefault(user => user.Username == postUser.Username);
 
                 if (foundUser == null)
@@ -143,22 +144,17 @@ public class Server
         }
         else if (path == "/sessions")
         {
-            var requestBody = ReadToEnd(ReadLength(reader), reader);
-            var postUser = JsonConvert.DeserializeObject<User>(requestBody);
-
             if (postUser == null)
             {
                 responseType = "Invalid JSON data";
             }
             else
             {
-                var users = (List<User>)userRepo.GetAll();
                 var foundUser = users.FirstOrDefault(user => user.Username == postUser.Username);
 
                 if (foundUser != null && foundUser.Password == postUser.Password)
                 {
-                    tokenList.Add(foundUser.Username + "-mtcgToken");
-                    //userRepo.Update(foundUser);
+                    token = foundUser.Username + "-mtcgToken";
                     objectResponse = JsonConvert.SerializeObject(foundUser.Username + "-mtcgToken");
                     responseType = "User login successful";
                 }
@@ -209,11 +205,11 @@ public class Server
                 var users = (List<User>)userRepo.GetAll();
                 var foundUser = users.FirstOrDefault(user => user.Username == username);
 
-                if (!tokenList.Contains(username + "-mtcgToken") || !tokenList.Contains("admin-mtcgToken"))
+                if (token != username + "-mtcgToken" && token != "admin-mtcgToken")
                 {
                     responseType = "Access token is missing or invalid";
                 }
-                else if(foundUser != null)
+                else if (foundUser != null)
                 {
                     foundUser.Bio = postUser.Bio;
                     foundUser.Name = postUser.Name;
@@ -229,7 +225,6 @@ public class Server
         }
         else if (path == "/deck")
         {
-
         }
 
         CreateAndSendResponse(responseType, writer, objectResponse);
@@ -303,6 +298,8 @@ public class Server
             writer.WriteLine();
             writer.WriteLine(response);
             writer.WriteLine(objectResponse);
+            if (token == "admin-mtcgToken")
+                token = null;
         }
         catch (Exception ex)
         {
@@ -338,6 +335,16 @@ public class Server
         var content_length = 0; // we need the content_length later, to be able to read the HTTP-content
         while ((line = reader.ReadLine()) != null)
         {
+            if (line.StartsWith("Authorization:"))
+            {
+                var authorizationHeader = line;
+                // Extract the Bearer Token from the Authorization header
+                var match = Regex.Match(authorizationHeader, "Bearer\\s+(\\S+)");
+                if (match.Success)
+                    if ("admin-mtcgToken" == match.Groups[1].Value)
+                        token = match.Groups[1].Value;
+            }
+
             Console.WriteLine(line);
             if (line == "") break; // empty line indicates the end of the HTTP-headers
 

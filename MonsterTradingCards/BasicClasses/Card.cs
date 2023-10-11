@@ -2,23 +2,22 @@
 {
     public class Card
     {
-        protected string CardName { get; set; }
-        protected int Damage { get; set; }
-        protected string Element{ get; set; }
+        protected int id { get; set; }
+        protected string name { get; set; }
+        protected double damage{ get; set; }
 
-        public Card():base()
+        public Card()
         {
-            CardName = "Null";
-            Damage = -1;
-            Element = "Null";
-        }
-        public Card(string name, int damage, string element) : base()
-        {
-            this.CardName = name;
-            this.Damage = damage;
-            this.Element = element;
+            id = 0;
+            name = null;
+            damage = -1.0;
         }
 
-
+        public Card(int id, string name, double damage)
+        {
+            this.id = id;
+            this.name = name;
+            this.damage = damage;
+        }
     }
 }
