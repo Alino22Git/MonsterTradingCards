@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Http;
 using MonsterTradingCards.BasicClasses;
 using MonsterTradingCards.Repository;
 using Newtonsoft.Json;
@@ -121,11 +122,13 @@ public class Server
         var objectResponse = "";
         var responseType = "";
         var requestBody = ReadToEnd(ReadLength(reader), reader);
-        var postUser = JsonConvert.DeserializeObject<User>(requestBody);
+        
+
         var users = (List<User>)userRepo.GetAll();
 
         if (path == "/users")
         {
+            var postUser = JsonConvert.DeserializeObject<User>(requestBody);
             //using (var requestBodyReader = new StreamReader(reader.BaseStream)) {
             if (postUser == null)
             {
@@ -149,6 +152,7 @@ public class Server
         }
         else if (path == "/sessions")
         {
+            var postUser = JsonConvert.DeserializeObject<User>(requestBody);
             if (postUser == null)
             {
                 responseType = "Invalid JSON data";
@@ -169,14 +173,46 @@ public class Server
                 }
             }
         }
-        else if (path == "/transactions/packages")
+        else if (path == "/packages")
         {
+            HashSet<Card> package = new HashSet<Card>();
+            List<Card> postCards = JsonConvert.DeserializeObject<List<Card>>(requestBody);
+            if (postCards == null)
+            {
+                responseType = "Invalid JSON data";
+            }
+            else
+            {
+
+                if (token != "admin-mtcgToken")
+                {
+                    responseType = "Access token is missing or invalid";
+                }
+                else foreach (var card in postCards)
+                    {
+                        if (package.Add(card))
+                        {
+                            responseType = "Package and cards successfully created";
+                        }
+                        else
+                        {
+                            responseType = "At least one card in the packages already exists";
+                            break;
+                        }
+                    }
+            if(responseType== "Package and cards successfully created")
+                {
+
+                }
+            }
+            
         }
         else if (path == "/tradings")
         {
         }
-        else if (path == "/packages")
+        else if (path == "/transactions/packages")
         {
+
         }
         else if (path == "/battles")
         {
@@ -234,6 +270,7 @@ public class Server
         }
         else if (path == "/deck")
         {
+
         }
         else
         {
@@ -262,13 +299,13 @@ public class Server
                 writer.WriteLine("HTTP/1.1 404 Not Found");
                 writer.WriteLine("Content-Type: text/plain");
             }
-            else if (response == "User successfully created")
+            else if (response == "User successfully created"||response== "Package and cards successfully created")
             {
                 //Code 201
                 writer.WriteLine("HTTP/1.1 201 Created");
                 writer.WriteLine("Content-Type: text/plain");
             }
-            else if (response == "User with same username already registered")
+            else if (response == "User with same username already registered"||response== "At least one card in the packages already exists")
             {
                 //Code 409
                 writer.WriteLine("HTTP/1.1 409 Conflict");

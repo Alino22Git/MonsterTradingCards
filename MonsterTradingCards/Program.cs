@@ -13,12 +13,15 @@ namespace MonsterTradingCards
 {
     internal class Program
     {
-      
 
+
+        private const string DbConnectionString = "Host=localhost;Username=postgres;Password=1223;Database=MonsterTradingCardGame";
         static void Main()
         {
-            var server = new GameLogic();
-            server.StartServer();
+            var userRepo = new UserRepo(DbConnectionString);
+            UserRepo.InitDb(DbConnectionString);
+            var server = new Server(DbConnectionString);
+            server.RunServer();
         }
     }
 

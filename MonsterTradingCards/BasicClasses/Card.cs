@@ -2,18 +2,18 @@
 {
     public class Card
     {
-        protected int id { get; set; }
-        protected string name { get; set; }
+        protected string? id { get; set; }
+        protected string? name { get; set; }
         protected double damage{ get; set; }
 
         public Card()
         {
-            id = 0;
+            id = null;
             name = null;
             damage = -1.0;
         }
 
-        public Card(int id, string name, double damage)
+        public Card(string? id, string? name, double damage)
         {
             this.id = id;
             this.name = name;
