@@ -7,12 +7,18 @@ namespace MonsterTradingCards.GameFunctions
 {
     internal class GameLogic
     {
-       public  List<HashSet<Card>> packages = new List<HashSet<Card>>();
+       public  static List<HashSet<Card>> packages = new List<HashSet<Card>>();
 
 
-        public void addPackage(HashSet<Card> cards)
+        public static void addPackage(HashSet<Card> cards)
         {
             packages.Add(cards);
+            foreach (Card card in cards)
+            {
+                Console.WriteLine(card.ToString());
+            }
+
+            Console.WriteLine(packages.Count());
         }
     }
 

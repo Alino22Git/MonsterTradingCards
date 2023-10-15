@@ -1,9 +1,11 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using MonsterTradingCards.BasicClasses;
+using MonsterTradingCards.GameFunctions;
 using MonsterTradingCards.Repository;
 using Newtonsoft.Json;
 
@@ -176,7 +178,7 @@ public class Server
         else if (path == "/packages")
         {
             HashSet<Card> package = new HashSet<Card>();
-            List<Card> postCards = JsonConvert.DeserializeObject<List<Card>>(requestBody);
+            List<Card>? postCards = JsonConvert.DeserializeObject<List<Card>>(requestBody);
             if (postCards == null)
             {
                 responseType = "Invalid JSON data";
@@ -188,24 +190,25 @@ public class Server
                 {
                     responseType = "Access token is missing or invalid";
                 }
-                else foreach (var card in postCards)
+                else
+                {
+                    foreach (var card in postCards)
                     {
-                        if (package.Add(card))
-                        {
-                            responseType = "Package and cards successfully created";
-                        }
-                        else
+
+                        if (!package.Add(card))
                         {
                             responseType = "At least one card in the packages already exists";
                             break;
                         }
                     }
-            if(responseType== "Package and cards successfully created")
-                {
 
+                    if (responseType != "At least one card in the packages already exists")
+                    {
+                        responseType = "Package and cards successfully created";
+                        GameLogic.addPackage(package);
+                    }
                 }
             }
-            
         }
         else if (path == "/tradings")
         {

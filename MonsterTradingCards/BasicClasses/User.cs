@@ -23,4 +23,5 @@ public class User
         Image = image;
         Password = password;
     }
+
 }
