@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -96,10 +97,29 @@ public class Server
                 responseType = "User not found.";
             }
         }
-        else if (path == "/deck")
-        {
-        }
         else if (path == "/cards")
+        {
+            string[] name = token.Split('-');
+            var foundUser = users.FirstOrDefault(user => user.Username == name[0]);
+            if ((token == "admin-mtcgToken") || !tokenlist.Contains(token))
+            {
+                responseType = "Access token is missing or invalid";
+            }
+            else
+            {
+                List<Card> userCards = GameLogic.userGetCards(name[0]);
+                if (userCards != null)
+                {
+                    responseType = "The user has cards, the response contains these";
+                    objectResponse = JsonConvert.SerializeObject(userCards);
+                }
+                else
+                {
+                    responseType = "The request was fine, but the user doesn't have any cards";
+                }
+            }
+        }
+        else if (path == "/deck")
         {
         }
         else if (path == "/stats")
@@ -344,7 +364,7 @@ public class Server
             }
             else if (response == "Data successfully retrieved" ||
                      response == "User successfully updated" ||
-                     response == "User login successful"||response== "A package has been successfully bought")
+                     response == "User login successful"||response== "A package has been successfully bought"||response== "The user has cards, the response contains these")
             {
                 //Code 200
                 writer.WriteLine("HTTP/1.1 200 OK");

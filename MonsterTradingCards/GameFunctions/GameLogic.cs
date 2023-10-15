@@ -2,6 +2,7 @@
 using MonsterTradingCards.Repository;
 using MonsterTradingCards.REST_Interface;
 using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace MonsterTradingCards.GameFunctions
 {
@@ -54,6 +55,16 @@ namespace MonsterTradingCards.GameFunctions
             }
             packages.RemoveAt(0);
             Console.WriteLine(packages.Count());
+        }
+
+        public static List<Card> userGetCards(string name)
+        {
+            if (userCards.ContainsKey(name))
+            {
+                return userCards[name];
+            }
+
+            return null;
         }
     }
 }
