@@ -13,42 +13,6 @@ public class UserRepo : IRepository<User>
         ConnectionString = connectionString;
     }
 
-    public User Get(int id)
-    {
-        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
-        {
-            using (var command = connection.CreateCommand())
-            {
-                command.CommandText = @"SELECT *
-                                        FROM Player
-                                        WHERE userId = @id";
-
-                connection.Open();
-
-                var userId = command.CreateParameter();
-                userId.DbType = DbType.Int32;
-                userId.ParameterName = "id";
-                userId.Value = id;
-                command.Parameters.Add(userId);
-
-                using (var reader = command.ExecuteReader())
-                {
-                    if (reader.Read())
-                        return new User(
-                            reader.GetInt32(0),
-                            reader.GetString(1),
-                            reader.GetString(2),
-                            reader.GetString(3),
-                            reader.GetString(4),
-                            reader.GetString(5)
-                        );
-                }
-            }
-        }
-
-        return null;
-    }
-
     public IEnumerable<User> GetAll()
     {
         var data = new List<User>();
@@ -86,25 +50,13 @@ public class UserRepo : IRepository<User>
 
     public void Update(User u)
     {
-        /*
-        u.UserId = int.Parse(parameters[0] ?? throw new ArgumentNullException("Id cannot be null"));
-        if (parameters[1] == null) u.Username = parameters[1];
-        if (parameters[2] == null) u.Name = parameters[2];
-        if (parameters[3] == null) u.Bio = parameters[3];
-        if (parameters[4] == null) u.Image = parameters[4];
-        if (parameters[5] == null) u.Password = parameters[5];
-
-        if (parameters[6] == null)
-            u.Token = u.Token = parameters[6];
-        */
-
         using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
         {
             using (var command = connection.CreateCommand())
             {
                 connection.Open();
                 command.CommandText = @"UPDATE Player
-                                            SET username = @uname, name=@name, bio=@bio, image=@image, password = @pass
+                                            SET username = @uname, name=@name, bio=@bio, image=@image, password = @pass, money = @money
                                             WHERE userId = @id";
 
 
@@ -146,6 +98,11 @@ public class UserRepo : IRepository<User>
                 var passParameter = command.CreateParameter();
                 passParameter.ParameterName = "pass";
                 passParameter.Value = u.Password;
+                command.Parameters.Add(passParameter);
+
+                var moneyParameter = command.CreateParameter();
+                passParameter.ParameterName = "money";
+                passParameter.Value = u.Money;
                 command.Parameters.Add(passParameter);
 
                 command.ExecuteNonQuery();
@@ -211,7 +168,8 @@ public class UserRepo : IRepository<User>
                             name VARCHAR(50),
                             bio VARCHAR(50),
                             image VARCHAR(50),
-                            password VARCHAR(255) NOT NULL
+                            password VARCHAR(255) NOT NULL,
+                            money INT
                         )
                     ";
                 cmd.ExecuteNonQuery();
@@ -226,8 +184,8 @@ public class UserRepo : IRepository<User>
             using (var command = connection.CreateCommand())
             {
                 connection.Open();
-                command.CommandText = @"INSERT INTO Player (username, password)
-                                    VALUES (@uname, @pass)";
+                command.CommandText = @"INSERT INTO Player (username, password, money)
+                                    VALUES (@uname, @pass, @money)";
 
 
                 //Parameter for username
@@ -241,6 +199,11 @@ public class UserRepo : IRepository<User>
                 passParameter.ParameterName = "pass";
                 passParameter.Value = u.Password;
                 command.Parameters.Add(passParameter);
+
+                var moneyParameter = command.CreateParameter();
+                moneyParameter.ParameterName = "money";
+                moneyParameter.Value = 20;
+                command.Parameters.Add(moneyParameter);
 
                 command.ExecuteNonQuery();
             }

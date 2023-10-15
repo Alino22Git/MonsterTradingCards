@@ -8,6 +8,7 @@ public class User
     public string? Bio { set; get; }
     public string? Image { set; get; }
     public string? Password { set; get;}
+    public int Money { set; get; }
 
     public User()
     {
@@ -22,6 +23,7 @@ public class User
         Bio = bio;
         Image = image;
         Password = password;
+        Money = 20;
     }
 
 }

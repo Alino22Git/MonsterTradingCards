@@ -165,7 +165,10 @@ public class Server
 
                 if (foundUser != null && foundUser.Password == postUser.Password)
                 {
-                    tokenlist.Add(foundUser.Username + "-mtcgToken");
+                    if (!tokenlist.Contains(foundUser.Username + "-mtcgToken"))
+                    {
+                        tokenlist.Add(foundUser.Username + "-mtcgToken");
+                    }
                     objectResponse = JsonConvert.SerializeObject(foundUser.Username + "-mtcgToken");
                     responseType = "User login successful";
                 }
@@ -185,10 +188,13 @@ public class Server
             }
             else
             {
-
-                if (token != "admin-mtcgToken")
+                if(token != "admin-mtcgToken")
                 {
                     responseType = "Access token is missing or invalid";
+                    if (tokenlist.Contains(token))
+                    {
+                        responseType = "Provided user is not admin";
+                    }
                 }
                 else
                 {
@@ -210,12 +216,27 @@ public class Server
                 }
             }
         }
-        else if (path == "/tradings")
-        {
-        }
         else if (path == "/transactions/packages")
         {
-
+            string[] name = token.Split('-');
+            var foundUser = users.FirstOrDefault(user => user.Username == name[0]);
+            if ((token == "admin-mtcgToken") || !tokenlist.Contains(token))
+            {
+                responseType = "Access token is missing or invalid";
+            }
+            else if (foundUser.Money<5)
+            {
+                responseType = "Not enough money for buying a card package";
+            }
+            else if(!GameLogic.packageExists())
+            {
+                responseType = "No card package available for buying";
+            }
+            else
+            {
+                GameLogic.userAquirePackage(name[0]);
+                responseType = "A package has been successfully bought";
+            }
         }
         else if (path == "/battles")
         {
@@ -296,7 +317,7 @@ public class Server
     {
         try
         {
-            if (response == "User not found.")
+            if (response == "User not found."||response== "No card package available for buying")
             {
                 //Code 404
                 writer.WriteLine("HTTP/1.1 404 Not Found");
@@ -323,13 +344,13 @@ public class Server
             }
             else if (response == "Data successfully retrieved" ||
                      response == "User successfully updated" ||
-                     response == "User login successful")
+                     response == "User login successful"||response== "A package has been successfully bought")
             {
                 //Code 200
                 writer.WriteLine("HTTP/1.1 200 OK");
                 writer.WriteLine("Content-Type: text/plain");
             }
-            else if (response == "Provided user is not admin")
+            else if (response == "Provided user is not admin"||response== "Not enough money for buying a card package")
             {
                 //Code 403
                 writer.WriteLine("HTTP/1.1 403 Forbidden");
