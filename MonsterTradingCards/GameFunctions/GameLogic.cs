@@ -10,7 +10,7 @@ namespace MonsterTradingCards.GameFunctions
     {
         public static List<HashSet<Card>> packages = new List<HashSet<Card>>();
         public static Dictionary<string,List<Card>> userCards = new Dictionary<string, List<Card>>();
-
+        public static Dictionary<string, List<Card>> userDeck = new Dictionary<string, List<Card>>();
 
         public static void addPackage(HashSet<Card> cards)
         {
@@ -46,12 +46,12 @@ namespace MonsterTradingCards.GameFunctions
             }
             else
             {
-                List<Card> existingCardList = new List<Card>();
+                List<Card> CardList = new List<Card>();
                 foreach (Card card in packages[0])
                 {
-                    existingCardList.Add(card);
+                    CardList.Add(card);
                 }
-                userCards.Add(name,existingCardList);
+                userCards.Add(name,CardList);
             }
             packages.RemoveAt(0);
             Console.WriteLine(packages.Count());
@@ -60,6 +60,39 @@ namespace MonsterTradingCards.GameFunctions
         public static List<Card> userGetCards(string name)
         {
             if (userCards.ContainsKey(name))
+            {
+                return userCards[name];
+            }
+
+            return null;
+        }
+
+        public static bool userSelectCards(string name,List<Card> cardIds)
+        {
+
+                List<Card> deckList = new List<Card>();
+                foreach (Card card in userCards[name])
+                {
+                    if (card.Id == cardIds[0].Id)
+                    {
+                        deckList.Add(card);
+                        cardIds.RemoveAt(0);
+                        if(cardIds.Count == 0)
+                        {
+                            break;
+                        }
+                    }
+                }
+                if(deckList.Count == 4) {
+                userDeck.Add(name, deckList);
+                    return true;
+                }
+            return false;
+        }
+
+        public static List<Card> userGetDeck(string name)
+        {
+            if (userDeck.ContainsKey(name))
             {
                 return userCards[name];
             }

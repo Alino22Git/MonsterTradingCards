@@ -279,9 +279,10 @@ public class Server
     {
         var objectResponse = "";
         var responseType = "";
+        var requestBody = ReadToEnd(ReadLength(reader), reader);
+        var users = (List<User>)userRepo.GetAll();
         if (path.StartsWith("/users/"))
         {
-            var requestBody = ReadToEnd(ReadLength(reader), reader);
             var postUser = JsonConvert.DeserializeObject<User>(requestBody);
 
             if (postUser == null)
@@ -291,7 +292,6 @@ public class Server
             else
             {
                 var username = path.Substring("/users/".Length);
-                var users = (List<User>)userRepo.GetAll();
                 var foundUser = users.FirstOrDefault(user => user.Username == username);
 
                 if ((token != username + "-mtcgToken" && token != "admin-mtcgToken") || !tokenlist.Contains(token))
@@ -314,7 +314,27 @@ public class Server
         }
         else if (path == "/deck")
         {
+            List<Card>? postCards = JsonConvert.DeserializeObject<List<Card>>(requestBody);
+            
+            string[] name = token.Split('-');
+            var foundUser = users.FirstOrDefault(user => user.Username == name[0]);
+            if ((token == "admin-mtcgToken") || !tokenlist.Contains(token))
+            {
+                responseType = "Access token is missing or invalid";
+            }
+            else if (postCards == null)
+            {
+                responseType = "Invalid JSON data";
+            }
+            else if (GameLogic.userSelectCards(name[0],postCards))
+                {
+                    responseType = "No card package available for buying";
+                }
+                else
+                {
 
+                }
+            
         }
         else
         {

@@ -101,9 +101,9 @@ public class UserRepo : IRepository<User>
                 command.Parameters.Add(passParameter);
 
                 var moneyParameter = command.CreateParameter();
-                passParameter.ParameterName = "money";
-                passParameter.Value = u.Money;
-                command.Parameters.Add(passParameter);
+                moneyParameter.ParameterName = "money";
+                moneyParameter.Value = u.Money;
+                command.Parameters.Add(moneyParameter);
 
                 command.ExecuteNonQuery();
             }
