@@ -19,10 +19,7 @@ namespace MonsterTradingCards.GameFunctions
             {
                 Console.WriteLine(card.ToString());
             }
-
-            Console.WriteLine(packages.Count());
         }
-
 
         public static bool packageExists()
         {
@@ -54,7 +51,7 @@ namespace MonsterTradingCards.GameFunctions
                 userCards.Add(name,CardList);
             }
             packages.RemoveAt(0);
-            Console.WriteLine(packages.Count());
+            
         }
 
         public static List<Card> userGetCards(string name)

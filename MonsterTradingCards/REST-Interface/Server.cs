@@ -256,6 +256,8 @@ public class Server
             {
                 GameLogic.userAquirePackage(name[0]);
                 responseType = "A package has been successfully bought";
+                foundUser.Money -= 5;
+                userRepo.Update(foundUser);
             }
         }
         else if (path == "/battles")

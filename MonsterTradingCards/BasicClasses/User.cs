@@ -15,7 +15,7 @@ public class User
 
     }
 
-    public User(int userId, string? username, string? name, string? bio, string? image, string? password)
+    public User(int userId, string? username, string? name, string? bio, string? image, string? password, int money)
     {
         UserId = userId;
         Username = username;
@@ -23,7 +23,7 @@ public class User
         Bio = bio;
         Image = image;
         Password = password;
-        Money = 20;
+        Money = money;
     }
 
 }

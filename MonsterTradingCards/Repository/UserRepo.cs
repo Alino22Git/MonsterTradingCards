@@ -37,8 +37,9 @@ public class UserRepo : IRepository<User>
                         if (!reader.IsDBNull(2)) name = reader.GetString(2);
                         if (!reader.IsDBNull(3)) bio = reader.GetString(3);
                         if (!reader.IsDBNull(4)) image = reader.GetString(4);
+                        int money = reader.GetInt32(6);
 
-                        data.Add(new User(userId, username, name, bio, image, password));
+                        data.Add(new User(userId, username, name, bio, image, password,money));
                     }
                 }
             }
@@ -108,8 +109,6 @@ public class UserRepo : IRepository<User>
                 command.ExecuteNonQuery();
             }
         }
-
-        ;
     }
 
     public void Delete(User u)
