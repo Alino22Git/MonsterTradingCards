@@ -328,14 +328,19 @@ public class Server
             {
                 responseType = "Invalid JSON data";
             }
-            else if (GameLogic.userSelectCards(name[0],postCards))
+            else if (postCards.Count < 4)
+            {
+                responseType = "The provided deck did not include the required amount of cards";
+            }
+            else if(GameLogic.userSelectCards(name[0], postCards))
                 {
-                    responseType = "No card package available for buying";
+                responseType = "The deck has been successfully configured";
                 }
-                else
-                {
-
-                }
+            else
+            {
+                responseType = "At least one of the provided cards does not belong to the user or is not available.";
+            }
+               
             
         }
         else
@@ -392,7 +397,7 @@ public class Server
                 writer.WriteLine("HTTP/1.1 200 OK");
                 writer.WriteLine("Content-Type: text/plain");
             }
-            else if (response == "Provided user is not admin"||response== "Not enough money for buying a card package")
+            else if (response == "Provided user is not admin"||response== "Not enough money for buying a card package"||response== "At least one of the provided cards does not belong to the user or is not available.")
             {
                 //Code 403
                 writer.WriteLine("HTTP/1.1 403 Forbidden");
@@ -405,7 +410,7 @@ public class Server
                 writer.WriteLine("Content-Type: text/plain");
             }
             else if (response == "Invalid JSON data" ||
-                     response == "Bad Request" )
+                     response == "Bad Request" ||response== "The provided deck did not include the required amount of cards")
             {
                 //Code 400
                 writer.WriteLine("HTTP/1.1 400 Bad Request");

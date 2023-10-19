@@ -66,7 +66,6 @@ namespace MonsterTradingCards.GameFunctions
 
         public static bool userSelectCards(string name,List<Card> cardIds)
         {
-
                 List<Card> deckList = new List<Card>();
                 foreach (Card card in userCards[name])
                 {
