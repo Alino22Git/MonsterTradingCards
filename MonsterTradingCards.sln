@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonsterTradingCards", "Mons
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projektmappenelemente", "Projektmappenelemente", "{C6BB8C9A-80BD-402E-9AA9-D9D5626C5A38}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{DCDC8FCE-E074-48B6-8454-51EE1F02D3B2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,6 +19,10 @@ Global
 		{EFB43667-0E1B-455F-AAD4-B539DA1EBF47}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFB43667-0E1B-455F-AAD4-B539DA1EBF47}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFB43667-0E1B-455F-AAD4-B539DA1EBF47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCDC8FCE-E074-48B6-8454-51EE1F02D3B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCDC8FCE-E074-48B6-8454-51EE1F02D3B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCDC8FCE-E074-48B6-8454-51EE1F02D3B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCDC8FCE-E074-48B6-8454-51EE1F02D3B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

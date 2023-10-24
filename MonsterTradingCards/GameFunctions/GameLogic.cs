@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace MonsterTradingCards.GameFunctions
 {
-    internal class GameLogic
+    public class GameLogic
     {
         public static List<HashSet<Card>> packages = new List<HashSet<Card>>();
         public static Dictionary<string,List<Card>> userCards = new Dictionary<string, List<Card>>();
