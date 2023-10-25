@@ -137,7 +137,6 @@ public class UserRepo : IRepository<User>
 
         //To connect to db
         var db = builder.Database;
-        Console.WriteLine(db);
         builder.Remove("Database");
         var connstr = builder.ToString();
 
