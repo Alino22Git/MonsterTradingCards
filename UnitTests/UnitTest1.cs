@@ -16,7 +16,7 @@ namespace UnitTests
         {
             
             HashSet<Card> testcards= new HashSet<Card>();
-            testcards.Add(new Card("alsdfjk323","Goblin",20));
+            testcards.Add(new Card("alsdfjk323","Goblin",20,0));
             GameLogic.addPackage(testcards);
             if(GameLogic.packages.Count==1)
             Assert.Pass();

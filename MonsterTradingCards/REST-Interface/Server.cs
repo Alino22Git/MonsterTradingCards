@@ -50,16 +50,16 @@ public class Server
                             var path = parts[1];
                             Console.WriteLine($"Received request: {httpMethod} {path}");
 
-                            var userRepo = new UserRepo(connectionString);
+                            var dbRepo = new DbRepo(connectionString);
 
                             if (httpMethod == "GET")
-                                GetMethods(path, writer, reader, userRepo);
+                                GetMethods(path, writer, reader, dbRepo);
                             else if (httpMethod == "POST")
-                                PostMethods(path, reader, writer, userRepo);
+                                PostMethods(path, reader, writer, dbRepo);
                             else if (httpMethod == "PUT")
-                                PutMethods(path, reader, writer, userRepo);
+                                PutMethods(path, reader, writer, dbRepo);
                             else if (httpMethod == "DELETE")
-                                DeleteMethods(path, writer, userRepo);
+                                DeleteMethods(path, writer, dbRepo);
                         }
                     }
                 }
@@ -70,12 +70,12 @@ public class Server
             }
     }
 
-    public void GetMethods(string path, StreamWriter writer, StreamReader reader, UserRepo userRepo)
+    public void GetMethods(string path, StreamWriter writer, StreamReader reader, DbRepo dbRepo)
     {
         var objectResponse = "";
         var responseType = "";
         var requestBody = ReadToEnd(ReadLength(reader), reader);
-        var users = (List<User>)userRepo.GetAll();
+        var users = (List<User>)dbRepo.GetAllUsers();
 
         if (path.StartsWith("/users/"))
         {
@@ -107,7 +107,7 @@ public class Server
             }
             else
             {
-                List<Card> userCards = GameLogic.userGetCards(name[0]);
+                List<Card> userCards =(List<Card>) dbRepo.UserGetCards(foundUser);
                 if (userCards != null)
                 {
                     responseType = "The user has cards, the response contains these";
@@ -139,14 +139,15 @@ public class Server
         CreateAndSendResponse(responseType, writer, objectResponse);
     }
 
-    public void PostMethods(string path, StreamReader reader, StreamWriter writer, UserRepo userRepo)
+    public void PostMethods(string path, StreamReader reader, StreamWriter writer, DbRepo dbRepo)
     {
         var objectResponse = "";
         var responseType = "";
         var requestBody = ReadToEnd(ReadLength(reader), reader);
         
 
-        var users = (List<User>)userRepo.GetAll();
+        var users = (List<User>)dbRepo.GetAllUsers();
+        var cards = (List<Card>)dbRepo.GetAllCards();
 
         if (path == "/users")
         {
@@ -162,7 +163,7 @@ public class Server
 
                 if (foundUser == null)
                 {
-                    userRepo.AddUserCredentials(postUser);
+                    dbRepo.AddUserCredentials(postUser);
                     responseType = "User successfully created";
                 }
                 else
@@ -220,18 +221,21 @@ public class Server
                 {
                     foreach (var card in postCards)
                     {
-
-                        if (!package.Add(card))
+                        var foundCard = cards.FirstOrDefault(dbcard => dbcard.Id == card.Id);
+                        
+                            if (!package.Add(card)|| foundCard != null)
                         {
-                            responseType = "At least one card in the packages already exists";
+                                responseType = "At least one card in the packages already exists";
                             break;
                         }
                     }
 
                     if (responseType != "At least one card in the packages already exists")
                     {
+                        
+                        foreach(var card in package)
+                            dbRepo.AddCard(card);
                         responseType = "Package and cards successfully created";
-                        GameLogic.addPackage(package);
                     }
                 }
             }
@@ -248,16 +252,17 @@ public class Server
             {
                 responseType = "Not enough money for buying a card package";
             }
-            else if(!GameLogic.packageExists())
+            else if(dbRepo.GetCardPackage()==null)
             {
                 responseType = "No card package available for buying";
             }
             else
             {
-                GameLogic.userAquirePackage(name[0]);
+                objectResponse = JsonConvert.SerializeObject((List<Card>) dbRepo.GetCardPackage());
+                dbRepo.UserAquireCards(foundUser);
                 responseType = "A package has been successfully bought";
                 foundUser.Money -= 5;
-                userRepo.Update(foundUser);
+                dbRepo.UpdateUser(foundUser);
             }
         }
         else if (path == "/battles")
@@ -277,12 +282,12 @@ public class Server
         CreateAndSendResponse(responseType, writer, objectResponse);
     }
 
-    public void PutMethods(string path, StreamReader reader, StreamWriter writer, UserRepo userRepo)
+    public void PutMethods(string path, StreamReader reader, StreamWriter writer, DbRepo dbRepo)
     {
         var objectResponse = "";
         var responseType = "";
         var requestBody = ReadToEnd(ReadLength(reader), reader);
-        var users = (List<User>)userRepo.GetAll();
+        var users = (List<User>)dbRepo.GetAllUsers();
         if (path.StartsWith("/users/"))
         {
             var postUser = JsonConvert.DeserializeObject<User>(requestBody);
@@ -305,7 +310,7 @@ public class Server
                     foundUser.Bio = postUser.Bio;
                     foundUser.Name = postUser.Name;
                     foundUser.Image = postUser.Image;
-                    userRepo.Update(foundUser);
+                    dbRepo.UpdateUser(foundUser);
                     responseType = "Data successfully retrieved";
                 }
                 else
@@ -351,7 +356,7 @@ public class Server
         CreateAndSendResponse(responseType, writer, objectResponse);
     }
 
-    public void DeleteMethods(string path, StreamWriter writer, UserRepo userRepo)
+    public void DeleteMethods(string path, StreamWriter writer, DbRepo dbRepo)
     {
         var objectResponse = "";
         var responseType = "";

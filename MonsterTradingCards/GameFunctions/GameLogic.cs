@@ -8,6 +8,7 @@ namespace MonsterTradingCards.GameFunctions
 {
     public class GameLogic
     {
+
         public static List<HashSet<Card>> packages = new List<HashSet<Card>>();
         public static Dictionary<string,List<Card>> userCards = new Dictionary<string, List<Card>>();
         public static Dictionary<string, List<Card>> userDeck = new Dictionary<string, List<Card>>();
@@ -30,8 +31,10 @@ namespace MonsterTradingCards.GameFunctions
             return false;
         }
 
-        public static void userAquirePackage(string name)
+        public static void userAquirePackage(string name,DbRepo dbRepo)
         {
+            var cards = (List<Card>)dbRepo.GetCardPackage();
+           // var foundCard = cards.FirstOrDefault(dbcard => dbcard.Id == card.Id);
             if (userCards.ContainsKey(name))
             {
                 List<Card> existingCardList = userCards[name];

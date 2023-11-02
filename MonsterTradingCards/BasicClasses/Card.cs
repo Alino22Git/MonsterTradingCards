@@ -5,19 +5,22 @@
         public string? Id { get; set; }
         public string? Name { get; set; }
         public double Damage { get; set; }
+        public int? Deck { get; set; }
 
         public Card()
         {
             Id = null;
             Name = null;
             Damage = -1.0;
+            Deck = 0;
         }
 
-        public Card(string? id, string? name, double damage)
+        public Card(string? id, string? name, double damage, int deck)
         {
             this.Id = id;
             this.Name = name;
             this.Damage = damage;
+            this.Deck = deck;
         }
 
         public override int GetHashCode()
