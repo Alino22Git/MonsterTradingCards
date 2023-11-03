@@ -330,8 +330,8 @@ public class DbRepo
             {
                 connection.Open();
                 command.CommandText = @"UPDATE Card
-                                            SET name = @name, damage = @damage
-                                            WHERE userId = @id";
+                                            SET name = @name, damage = @damage, deck = @deck
+                                            WHERE cardId = @id";
 
 
                 var idParameter = command.CreateParameter();
@@ -342,11 +342,17 @@ public class DbRepo
                 var nameParameter = command.CreateParameter();
                 nameParameter.ParameterName = "name";
                 nameParameter.Value = c.Name;
+                command.Parameters.Add(nameParameter);
 
                 var damageParameter = command.CreateParameter();
                 damageParameter.ParameterName = "damage";
                 damageParameter.Value = c.Damage;
                 command.Parameters.Add(damageParameter);
+
+                var deckParameter = command.CreateParameter();
+                deckParameter.ParameterName = "deck";
+                deckParameter.Value = c.Deck;
+                command.Parameters.Add(deckParameter);
 
                 command.ExecuteNonQuery();
             }
@@ -398,7 +404,6 @@ public class DbRepo
                 }
             }
         }
-
     }
 
     public IEnumerable<Card> UserGetCards(User user)
@@ -431,7 +436,42 @@ public class DbRepo
                 }
             }
         }
+        if (data.Count() == 0)
+        {
+            return null;
+        }
+        return data;
+    }
+    public IEnumerable<Card> UserGetDeck(User user)
+    {
+        var data = new List<Card>();
+        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        {
+            using (var command = connection.CreateCommand())
+            {
+                connection.Open();
+                command.CommandText = @"SELECT Card.*
+                                        FROM Card
+                                        JOIN UserCard ON Card.cardId = UserCard.cardId
+                                        WHERE UserCard.userId = @id AND Card.deck = 1";
+                var idParameter = command.CreateParameter();
+                idParameter.ParameterName = "id";
+                idParameter.Value = user.UserId;
+                command.Parameters.Add(idParameter);
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var cardId = reader.GetString(0);
+                        var name = reader.GetString(1);
+                        var damage = reader.GetInt32(2);
+                        var deck = reader.GetInt32(3);
 
+                        data.Add(new Card(cardId, name, damage, deck));
+                    }
+                }
+            }
+        }
         if (data.Count() == 0)
         {
             return null;

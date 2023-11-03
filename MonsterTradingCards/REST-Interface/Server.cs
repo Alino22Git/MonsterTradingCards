@@ -1,12 +1,8 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Http;
 using MonsterTradingCards.BasicClasses;
-using MonsterTradingCards.GameFunctions;
 using MonsterTradingCards.Repository;
 using Newtonsoft.Json;
 
@@ -17,8 +13,8 @@ public class Server
     private readonly string connectionString;
     private readonly TcpListener listener;
     private readonly int port = 10001;
-    private List<string> tokenlist = new List<string>();
     private string token;
+    private readonly List<string> tokenlist = new();
 
     public Server(string con)
     {
@@ -83,7 +79,7 @@ public class Server
             var username = path.Substring("/users/".Length);
             var foundUser = users.FirstOrDefault(user => user.Username == username);
 
-            if ((token != username + "-mtcgToken" && token != "admin-mtcgToken")||!tokenlist.Contains(token))
+            if ((token != username + "-mtcgToken" && token != "admin-mtcgToken") || !tokenlist.Contains(token))
             {
                 responseType = "Access token is missing or invalid";
             }
@@ -99,15 +95,20 @@ public class Server
         }
         else if (path == "/cards")
         {
-            string[] name = token.Split('-');
-            var foundUser = users.FirstOrDefault(user => user.Username == name[0]);
-            if ((token == "admin-mtcgToken") || !tokenlist.Contains(token))
+            User foundUser = null;
+            if (token != null)
+            {
+                var name = token.Split('-');
+                foundUser = users.FirstOrDefault(user => user.Username == name[0]);
+            }
+
+            if (token == "admin-mtcgToken" || !tokenlist.Contains(token))
             {
                 responseType = "Access token is missing or invalid";
             }
             else
             {
-                List<Card> userCards =(List<Card>) dbRepo.UserGetCards(foundUser);
+                var userCards = (List<Card>)dbRepo.UserGetCards(foundUser);
                 if (userCards != null)
                 {
                     responseType = "The user has cards, the response contains these";
@@ -121,6 +122,30 @@ public class Server
         }
         else if (path == "/deck")
         {
+            User foundUser = null;
+            if (token != null)
+            {
+                var name = token.Split('-');
+                foundUser = users.FirstOrDefault(user => user.Username == name[0]);
+            }
+
+            if (token == "admin-mtcgToken" || !tokenlist.Contains(token))
+            {
+                responseType = "Access token is missing or invalid";
+            }
+            else
+            {
+                var userDeck = (List<Card>)dbRepo.UserGetDeck(foundUser);
+                if (userDeck != null)
+                {
+                    responseType = "The deck has cards, the response contains these";
+                    objectResponse = JsonConvert.SerializeObject(userDeck);
+                }
+                else
+                {
+                    responseType = "The request was fine, but the user doesn't have any cards";
+                }
+            }
         }
         else if (path == "/stats")
         {
@@ -144,7 +169,7 @@ public class Server
         var objectResponse = "";
         var responseType = "";
         var requestBody = ReadToEnd(ReadLength(reader), reader);
-        
+
 
         var users = (List<User>)dbRepo.GetAllUsers();
         var cards = (List<Card>)dbRepo.GetAllCards();
@@ -187,9 +212,7 @@ public class Server
                 if (foundUser != null && foundUser.Password == postUser.Password)
                 {
                     if (!tokenlist.Contains(foundUser.Username + "-mtcgToken"))
-                    {
                         tokenlist.Add(foundUser.Username + "-mtcgToken");
-                    }
                     objectResponse = JsonConvert.SerializeObject(foundUser.Username + "-mtcgToken");
                     responseType = "User login successful";
                 }
@@ -201,39 +224,35 @@ public class Server
         }
         else if (path == "/packages")
         {
-            HashSet<Card> package = new HashSet<Card>();
-            List<Card>? postCards = JsonConvert.DeserializeObject<List<Card>>(requestBody);
+            var package = new HashSet<Card>();
+            var postCards = JsonConvert.DeserializeObject<List<Card>>(requestBody);
             if (postCards == null)
             {
                 responseType = "Invalid JSON data";
             }
             else
             {
-                if(token != "admin-mtcgToken")
+                if (token != "admin-mtcgToken")
                 {
                     responseType = "Access token is missing or invalid";
-                    if (tokenlist.Contains(token))
-                    {
-                        responseType = "Provided user is not admin";
-                    }
+                    if (tokenlist.Contains(token)) responseType = "Provided user is not admin";
                 }
                 else
                 {
                     foreach (var card in postCards)
                     {
                         var foundCard = cards.FirstOrDefault(dbcard => dbcard.Id == card.Id);
-                        
-                            if (!package.Add(card)|| foundCard != null)
+
+                        if (!package.Add(card) || foundCard != null)
                         {
-                                responseType = "At least one card in the packages already exists";
+                            responseType = "At least one card in the packages already exists";
                             break;
                         }
                     }
 
                     if (responseType != "At least one card in the packages already exists")
                     {
-                        
-                        foreach(var card in package)
+                        foreach (var card in package)
                             dbRepo.AddCard(card);
                         responseType = "Package and cards successfully created";
                     }
@@ -242,23 +261,28 @@ public class Server
         }
         else if (path == "/transactions/packages")
         {
-            string[] name = token.Split('-');
-            var foundUser = users.FirstOrDefault(user => user.Username == name[0]);
-            if ((token == "admin-mtcgToken") || !tokenlist.Contains(token))
+            User foundUser = null;
+            if (token != null)
+            {
+                var name = token.Split('-');
+                foundUser = users.FirstOrDefault(user => user.Username == name[0]);
+            }
+
+            if (token == "admin-mtcgToken" || !tokenlist.Contains(token))
             {
                 responseType = "Access token is missing or invalid";
             }
-            else if (foundUser.Money<5)
+            else if (foundUser.Money < 5)
             {
                 responseType = "Not enough money for buying a card package";
             }
-            else if(dbRepo.GetCardPackage()==null)
+            else if (dbRepo.GetCardPackage() == null)
             {
                 responseType = "No card package available for buying";
             }
             else
             {
-                objectResponse = JsonConvert.SerializeObject((List<Card>) dbRepo.GetCardPackage());
+                objectResponse = JsonConvert.SerializeObject((List<Card>)dbRepo.GetCardPackage());
                 dbRepo.UserAquireCards(foundUser);
                 responseType = "A package has been successfully bought";
                 foundUser.Money -= 5;
@@ -321,11 +345,16 @@ public class Server
         }
         else if (path == "/deck")
         {
-            List<Card>? postCards = JsonConvert.DeserializeObject<List<Card>>(requestBody);
-            
-            string[] name = token.Split('-');
-            var foundUser = users.FirstOrDefault(user => user.Username == name[0]);
-            if ((token == "admin-mtcgToken") || !tokenlist.Contains(token))
+            var postCards = JsonConvert.DeserializeObject<List<Card>>(requestBody);
+
+            User foundUser = null;
+            if (token != null)
+            {
+                var name = token.Split('-');
+                foundUser = users.FirstOrDefault(user => user.Username == name[0]);
+            }
+
+            if (token == "admin-mtcgToken" || !tokenlist.Contains(token))
             {
                 responseType = "Access token is missing or invalid";
             }
@@ -333,20 +362,45 @@ public class Server
             {
                 responseType = "Invalid JSON data";
             }
-            else if (postCards.Count < 4)
+            else if (postCards.Count != 4)
             {
                 responseType = "The provided deck did not include the required amount of cards";
             }
-            else if(GameLogic.userSelectCards(name[0], postCards))
-                {
-                responseType = "The deck has been successfully configured";
-                }
             else
             {
-                responseType = "At least one of the provided cards does not belong to the user or is not available.";
+                var found = 0;
+                List<Card> userCards = (List<Card>) dbRepo.UserGetCards(foundUser);
+
+                for (int i = 0; i < userCards.Count; i++)
+                {
+                    for (int x = found; x < postCards.Count; x++)
+                    {
+                        if (userCards[i].Id.Equals(postCards[x].Id))
+                        {
+                            found++;
+                            break;
+                        }
+                        if (found == 4)
+                            break;
+                    }
+                }
+
+                if (found==4)
+                {
+                    foreach (Card c in postCards)
+                    {
+                        c.Deck = 1;
+                       Console.Write(c);
+                        dbRepo.UpdateCard(c);
+                    }
+
+                    responseType = "The deck has been successfully configured";
+                }
+                else
+                {
+                    responseType ="At least one of the provided cards does not belong to the user or is not available.";
+                }
             }
-               
-            
         }
         else
         {
@@ -369,19 +423,20 @@ public class Server
     {
         try
         {
-            if (response == "User not found."||response== "No card package available for buying")
+            if (response == "User not found." || response == "No card package available for buying")
             {
                 //Code 404
                 writer.WriteLine("HTTP/1.1 404 Not Found");
                 writer.WriteLine("Content-Type: text/plain");
             }
-            else if (response == "User successfully created"||response== "Package and cards successfully created")
+            else if (response == "User successfully created" || response == "Package and cards successfully created")
             {
                 //Code 201
                 writer.WriteLine("HTTP/1.1 201 Created");
                 writer.WriteLine("Content-Type: text/plain");
             }
-            else if (response == "User with same username already registered"||response== "At least one card in the packages already exists")
+            else if (response == "User with same username already registered" ||
+                     response == "At least one card in the packages already exists")
             {
                 //Code 409
                 writer.WriteLine("HTTP/1.1 409 Conflict");
@@ -396,13 +451,17 @@ public class Server
             }
             else if (response == "Data successfully retrieved" ||
                      response == "User successfully updated" ||
-                     response == "User login successful"||response== "A package has been successfully bought"||response== "The user has cards, the response contains these")
+                     response == "User login successful" || response == "A package has been successfully bought" ||
+                     response == "The user has cards, the response contains these" || 
+                     response == "The deck has cards, the response contains these")
             {
                 //Code 200
                 writer.WriteLine("HTTP/1.1 200 OK");
                 writer.WriteLine("Content-Type: text/plain");
             }
-            else if (response == "Provided user is not admin"||response== "Not enough money for buying a card package"||response== "At least one of the provided cards does not belong to the user or is not available.")
+            else if (response == "Provided user is not admin" ||
+                     response == "Not enough money for buying a card package" || response ==
+                     "At least one of the provided cards does not belong to the user or is not available." || response == "The deck has been successfully configured")
             {
                 //Code 403
                 writer.WriteLine("HTTP/1.1 403 Forbidden");
@@ -415,7 +474,8 @@ public class Server
                 writer.WriteLine("Content-Type: text/plain");
             }
             else if (response == "Invalid JSON data" ||
-                     response == "Bad Request" ||response== "The provided deck did not include the required amount of cards")
+                     response == "Bad Request" ||
+                     response == "The provided deck did not include the required amount of cards")
             {
                 //Code 400
                 writer.WriteLine("HTTP/1.1 400 Bad Request");
@@ -425,7 +485,7 @@ public class Server
             writer.WriteLine();
             writer.WriteLine(response);
             writer.WriteLine(objectResponse);
-                token = null;
+            token = null;
         }
         catch (Exception ex)
         {
@@ -469,15 +529,15 @@ public class Server
                 if (match.Success)
                     token = match.Groups[1].Value;
             }
-                Console.WriteLine(line);
-                if (line == "") break; // empty line indicates the end of the HTTP-headers
 
-                // Parse the header
-                var parts = line.Split(':');
-                if (parts.Length == 2 && parts[0] == "Content-Length") content_length = int.Parse(parts[1].Trim());
-            }
-        
+            Console.WriteLine(line);
+            if (line == "") break; // empty line indicates the end of the HTTP-headers
+
+            // Parse the header
+            var parts = line.Split(':');
+            if (parts.Length == 2 && parts[0] == "Content-Length") content_length = int.Parse(parts[1].Trim());
+        }
+
         return content_length;
     }
 }
-
