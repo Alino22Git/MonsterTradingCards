@@ -149,9 +149,44 @@ public class Server
         }
         else if (path == "/stats")
         {
+            User foundUser = null;
+            if (token != null)
+            {
+                var name = token.Split('-');
+                foundUser = users.FirstOrDefault(user => user.Username == name[0]);
+            }
+
+            if (token == "admin-mtcgToken" || !tokenlist.Contains(token))
+            {
+                responseType = "Access token is missing or invalid";
+            }
+            else
+            {
+                var amountofCards = dbRepo.UserGetCards(foundUser).Count();
+                int wins = foundUser.Battles - (foundUser.Battles - (foundUser.Elo / 3)) / 2;
+                int losses = foundUser.Battles - wins;
+                objectResponse = JsonConvert.SerializeObject("Stats from User:"+foundUser.Username +"\nBattles played:"+foundUser.Battles + "\nWins:" + wins + "\nLosses:" + losses +"\nCurrent Elo:" + foundUser.Elo + "\nCurrent amount of Cards:"+amountofCards);
+                responseType = "The stats could be retrieved successfully.";
+            }
         }
         else if (path == "/scoreboard")
         {
+            if (!tokenlist.Contains(token))
+            {
+                responseType = "Access token is missing or invalid";
+            }
+            else
+            {
+                List<String> scoreboard = new List<String>();
+                foreach (var u in users)
+                {
+                    int wins = u.Battles - (u.Battles - (u.Elo / 3)) / 2;
+                    int losses = u.Battles - wins;
+                    scoreboard.Add("Scoreboard\nUsername:"+u.Username+"\nCurrent Elo:"+u.Elo+"\nWins:"+wins+"\nLosses:"+losses+"Battles:"+u.Battles);
+                }
+                objectResponse = JsonConvert.SerializeObject(scoreboard);
+                responseType = "The scoreboard could be retrieved successfully.";
+            }
         }
         else if (path == "/tradings")
         {
@@ -453,15 +488,18 @@ public class Server
                      response == "User successfully updated" ||
                      response == "User login successful" || response == "A package has been successfully bought" ||
                      response == "The user has cards, the response contains these" || 
-                     response == "The deck has cards, the response contains these")
+                     response == "The deck has cards, the response contains these" ||
+                     response == "The scoreboard could be retrieved successfully." ||
+                     response == "The stats could be retrieved successfully.")
             {
                 //Code 200
                 writer.WriteLine("HTTP/1.1 200 OK");
                 writer.WriteLine("Content-Type: text/plain");
             }
             else if (response == "Provided user is not admin" ||
-                     response == "Not enough money for buying a card package" || response ==
-                     "At least one of the provided cards does not belong to the user or is not available." || response == "The deck has been successfully configured")
+                     response == "Not enough money for buying a card package" || 
+                     response == "At least one of the provided cards does not belong to the user or is not available." || 
+                     response == "The deck has been successfully configured")
             {
                 //Code 403
                 writer.WriteLine("HTTP/1.1 403 Forbidden");

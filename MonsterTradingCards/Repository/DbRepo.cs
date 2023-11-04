@@ -39,8 +39,10 @@ public class DbRepo
                         if (!reader.IsDBNull(3)) bio = reader.GetString(3);
                         if (!reader.IsDBNull(4)) image = reader.GetString(4);
                         var money = reader.GetInt32(6);
+                        var elo = reader.GetInt32(7);
+                        var battles = reader.GetInt32(8);
 
-                        data.Add(new User(userId, username, name, bio, image, password, money));
+                        data.Add(new User(userId, username, name, bio, image, password, money, elo, battles));
                     }
                 }
             }
@@ -58,7 +60,7 @@ public class DbRepo
             {
                 connection.Open();
                 command.CommandText = @"UPDATE Player
-                                            SET username = @uname, name=@name, bio=@bio, image=@image, password = @pass, money = @money
+                                            SET username = @uname, name=@name, bio=@bio, image=@image, password = @pass, money = @money, elo = @elo, battles = @battles
                                             WHERE userId = @id";
 
 
@@ -106,6 +108,16 @@ public class DbRepo
                 moneyParameter.ParameterName = "money";
                 moneyParameter.Value = u.Money;
                 command.Parameters.Add(moneyParameter);
+
+                var eloParameter = command.CreateParameter();
+                eloParameter.ParameterName = "elo";
+                eloParameter.Value = u.Elo;
+                command.Parameters.Add(eloParameter);
+
+                var battlesParameter = command.CreateParameter();
+                battlesParameter.ParameterName = "battles";
+                battlesParameter.Value = u.Battles;
+                command.Parameters.Add(battlesParameter);
 
                 command.ExecuteNonQuery();
             }
@@ -168,7 +180,9 @@ public class DbRepo
                             bio VARCHAR(50),
                             image VARCHAR(50),
                             password VARCHAR(255) NOT NULL,
-                            money INT
+                            money INT,
+                            elo INT,
+                            battles INT
                         )
                     ";
                 cmd.ExecuteNonQuery();
@@ -200,8 +214,8 @@ public class DbRepo
             using (var command = connection.CreateCommand())
             {
                 connection.Open();
-                command.CommandText = @"INSERT INTO Player (username, password, money)
-                                    VALUES (@uname, @pass, @money)";
+                command.CommandText = @"INSERT INTO Player (username, password, money, elo, battles)
+                                    VALUES (@uname, @pass, @money, @elo, @battles)";
 
 
                 //Parameter for username
@@ -221,6 +235,15 @@ public class DbRepo
                 moneyParameter.Value = 20;
                 command.Parameters.Add(moneyParameter);
 
+                var eloParameter = command.CreateParameter();
+                eloParameter.ParameterName = "elo";
+                eloParameter.Value = 100;
+                command.Parameters.Add(eloParameter);
+
+                var battlesParameter = command.CreateParameter();
+                battlesParameter.ParameterName = "battles";
+                battlesParameter.Value = 0;
+                command.Parameters.Add(battlesParameter);
                 command.ExecuteNonQuery();
             }
         }
