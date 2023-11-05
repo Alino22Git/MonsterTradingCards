@@ -519,10 +519,13 @@ public class Server
                 writer.WriteLine("HTTP/1.1 400 Bad Request");
                 writer.WriteLine("Content-Type: text/plain");
             }
-
             writer.WriteLine();
-            writer.WriteLine(response);
-            writer.WriteLine(objectResponse);
+            if (response != "The request was fine, but the user doesn't have any cards")
+            {
+                writer.WriteLine(response);
+                writer.WriteLine(objectResponse);
+            }
+
             token = null;
         }
         catch (Exception ex)
