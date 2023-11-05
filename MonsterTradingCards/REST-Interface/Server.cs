@@ -163,9 +163,14 @@ public class Server
             else
             {
                 var amountofCards = dbRepo.UserGetCards(foundUser).Count();
-                int wins = foundUser.Battles - (foundUser.Battles - (foundUser.Elo / 3)) / 2;
+                int wins = foundUser.Battles - (foundUser.Battles - ((foundUser.Elo - 100) / 3)) / 2;
                 int losses = foundUser.Battles - wins;
-                objectResponse = JsonConvert.SerializeObject("Stats from User:"+foundUser.Username +"\nBattles played:"+foundUser.Battles + "\nWins:" + wins + "\nLosses:" + losses +"\nCurrent Elo:" + foundUser.Elo + "\nCurrent amount of Cards:"+amountofCards);
+                objectResponse = JsonConvert.SerializeObject("Stats from User: "+foundUser.Username +"" +
+                                                             " Battles played: "+foundUser.Battles + "" +
+                                                             " Wins: " + wins + "" +
+                                                             " Losses: " + losses +"" +
+                                                             " Current Elo: " + foundUser.Elo + "" +
+                                                             " Current amount of Cards: "+amountofCards);
                 responseType = "The stats could be retrieved successfully.";
             }
         }
@@ -178,11 +183,17 @@ public class Server
             else
             {
                 List<String> scoreboard = new List<String>();
+                scoreboard.Add("Scoreboard: " +
+                               "");
                 foreach (var u in users)
                 {
-                    int wins = u.Battles - (u.Battles - (u.Elo / 3)) / 2;
+                    int wins = u.Battles - (u.Battles - ((u.Elo-100) / 3)) / 2;
                     int losses = u.Battles - wins;
-                    scoreboard.Add("Scoreboard\nUsername:"+u.Username+"\nCurrent Elo:"+u.Elo+"\nWins:"+wins+"\nLosses:"+losses+"Battles:"+u.Battles);
+                    scoreboard.Add(" Username: "+u.Username+"" +
+                                   " Current Elo: "+u.Elo+"" +
+                                   " Wins: "+wins+"" +
+                                   " Losses: "+losses+"" +
+                                   " Battles: "+u.Battles);
                 }
                 objectResponse = JsonConvert.SerializeObject(scoreboard);
                 responseType = "The scoreboard could be retrieved successfully.";
@@ -415,18 +426,18 @@ public class Server
                             found++;
                             break;
                         }
-                        if (found == 4)
-                            break;
                     }
+                    if (found == 4)
+                        break;
                 }
 
                 if (found==4)
                 {
                     foreach (Card c in postCards)
                     {
-                        c.Deck = 1;
-                       Console.Write(c);
-                        dbRepo.UpdateCard(c);
+                        var card = userCards.FirstOrDefault(card => card.Id == c.Id);
+                        card.Deck = 1;
+                        dbRepo.UpdateCard(card);
                     }
 
                     responseType = "The deck has been successfully configured";
@@ -490,7 +501,8 @@ public class Server
                      response == "The user has cards, the response contains these" || 
                      response == "The deck has cards, the response contains these" ||
                      response == "The scoreboard could be retrieved successfully." ||
-                     response == "The stats could be retrieved successfully.")
+                     response == "The stats could be retrieved successfully." ||
+                     response == "The deck has been successfully configured")
             {
                 //Code 200
                 writer.WriteLine("HTTP/1.1 200 OK");
@@ -498,8 +510,7 @@ public class Server
             }
             else if (response == "Provided user is not admin" ||
                      response == "Not enough money for buying a card package" || 
-                     response == "At least one of the provided cards does not belong to the user or is not available." || 
-                     response == "The deck has been successfully configured")
+                     response == "At least one of the provided cards does not belong to the user or is not available." )
             {
                 //Code 403
                 writer.WriteLine("HTTP/1.1 403 Forbidden");

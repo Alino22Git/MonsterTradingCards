@@ -8,7 +8,7 @@ namespace MonsterTradingCards.GameFunctions
 {
     public class GameLogic
     {
-
+        /*
         public static List<HashSet<Card>> packages = new List<HashSet<Card>>();
         public static Dictionary<string,List<Card>> userCards = new Dictionary<string, List<Card>>();
         public static Dictionary<string, List<Card>> userDeck = new Dictionary<string, List<Card>>();
@@ -97,6 +97,6 @@ namespace MonsterTradingCards.GameFunctions
             }
 
             return null;
-        }
+        }*/
     }
 }
