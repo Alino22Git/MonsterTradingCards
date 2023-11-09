@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using MonsterTradingCards.BasicClasses;
+using MonsterTradingCards.GameFunctions;
 using MonsterTradingCards.Repository;
 using Newtonsoft.Json;
 
@@ -14,7 +15,9 @@ public class Server
     private readonly TcpListener listener;
     private readonly int port = 10001;
     private string token;
+    private readonly object lockO = new object(); // Hier wird ein Objekt für die Synchronisation erstellt
     private readonly List<string> tokenlist = new();
+    private readonly Queue<string> playerQueue = new Queue<string>();
 
     public Server(string con)
     {
@@ -29,23 +32,39 @@ public class Server
         Console.WriteLine("Server running. Waiting for Requests...");
 
         while (true)
+        {
             try
             {
                 using (var client = listener.AcceptTcpClient())
-                using (var stream = client.GetStream())
-                using (var reader = new StreamReader(stream))
-                using (var writer = new StreamWriter(stream) { AutoFlush = true })
                 {
-                    var requestLine = reader.ReadLine();
-                    if (!string.IsNullOrEmpty(requestLine))
-                    {
-                        var parts = requestLine.Split(' ');
-                        if (parts.Length == 3)
-                        {
-                            var httpMethod = parts[0];
-                            var path = parts[1];
-                            Console.WriteLine($"Received request: {httpMethod} {path}");
+                    Task.Factory.StartNew(() => HandleRequest(client));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error in RunServer(): " + ex.Message);
+            }
+        }
+    }
 
+    private void HandleRequest(TcpClient client)
+    {
+        try
+        {
+            using (var stream = client.GetStream())
+            using (var reader = new StreamReader(stream))
+            using (var writer = new StreamWriter(stream) { AutoFlush = true })
+            {
+                var requestLine = reader.ReadLine();
+                if (!string.IsNullOrEmpty(requestLine))
+                {
+                    var parts = requestLine.Split(' ');
+                    if (parts.Length == 3)
+                    {
+                        var httpMethod = parts[0];
+                        var path = parts[1];
+                        
+                            Console.WriteLine($"Received request: {httpMethod} {path}");
                             var dbRepo = new DbRepo(connectionString);
 
                             if (httpMethod == "GET")
@@ -56,14 +75,16 @@ public class Server
                                 PutMethods(path, reader, writer, dbRepo);
                             else if (httpMethod == "DELETE")
                                 DeleteMethods(path, writer, dbRepo);
-                        }
+                        
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error in RunServer(): " + ex.Message);
-            }
+            
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error in HandleRequest(): " + ex.Message);
+        }
     }
 
     public void GetMethods(string path, StreamWriter writer, StreamReader reader, DbRepo dbRepo)
@@ -337,6 +358,30 @@ public class Server
         }
         else if (path == "/battles")
         {
+            if (!tokenlist.Contains(token))
+            {
+                responseType = "Access token is missing or invalid";
+            }
+            else
+            {
+                // Füge den aktuellen Spieler zur Warteschlange hinzu
+                playerQueue.Enqueue(token);
+
+                // Überprüfe, ob es bereits einen wartenden Spieler gibt
+                if (playerQueue.Count >= 2)
+                {
+                    // Starte den Kampf zwischen den ersten beiden Spielern in der Warteschlange
+                    var player1 = playerQueue.Dequeue();
+                    var player2 = playerQueue.Dequeue();
+                    GameLogic.StartBattle(player1, player2);
+
+                    responseType = "Battle started";
+                }
+                else
+                {
+                    responseType = "Waiting for an opponent";
+                }
+            }
         }
         else if (path == "/tradings")
         {

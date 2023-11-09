@@ -98,5 +98,9 @@ namespace MonsterTradingCards.GameFunctions
 
             return null;
         }*/
+        public static void StartBattle(string player1, string player2)
+        {
+          
+        }
     }
 }
