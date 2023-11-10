@@ -2,105 +2,108 @@
 using MonsterTradingCards.Repository;
 using MonsterTradingCards.REST_Interface;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Xml.Linq;
 
 namespace MonsterTradingCards.GameFunctions
 {
     public class GameLogic
     {
-        /*
-        public static List<HashSet<Card>> packages = new List<HashSet<Card>>();
-        public static Dictionary<string,List<Card>> userCards = new Dictionary<string, List<Card>>();
-        public static Dictionary<string, List<Card>> userDeck = new Dictionary<string, List<Card>>();
-
-        public static void addPackage(HashSet<Card> cards)
+        public BattleResult StartBattle(List<Card> player1, List<Card> player2)
         {
-            packages.Add(cards);
-            foreach (Card card in cards)
+            BattleResult battleResult = new BattleResult();
+            int roundCount = 0;
+
+            while (roundCount < 100 && player1.Count > 0 && player2.Count > 0)
             {
-                Console.WriteLine(card.ToString());
+                var cardA = GetRandomCard(player1);
+                var cardB = GetRandomCard(player2);
+
+                var roundResult = FightRound(cardA, cardB);
+                battleResult.AddRoundResult(roundResult);
+
+                // Update decks based on round result
+                UpdateDecks(player1, player2, roundResult);
+
+                roundCount++;
             }
+
+            // Update player stats based on battle result
+            UpdatePlayerStats(player1, player2, battleResult);
+
+            return battleResult;
         }
 
-        public static bool packageExists()
+        private Card GetRandomCard(List<Card> deck)
         {
-            if (packages.Count() > 0)
-            {
-                return true;
-            }
-            return false;
+            if (deck.Count == 0)
+                return new Card(); // Placeholder for an empty deck
+
+            Random random = new Random();
+            int randomIndex = random.Next(0, deck.Count);
+            return deck[randomIndex];
         }
 
-        public static void userAquirePackage(string name,DbRepo dbRepo)
+        private RoundResult FightRound(Card cardA, Card cardB)
         {
-            var cards = (List<Card>)dbRepo.GetCardPackage();
-           // var foundCard = cards.FirstOrDefault(dbcard => dbcard.Id == card.Id);
-            if (userCards.ContainsKey(name))
-            {
-                List<Card> existingCardList = userCards[name];
-                foreach (Card card in packages[0])
-                {
-                    existingCardList.Add(card);
-                }
-                userCards[name] = existingCardList;
-            }
-            else
-            {
-                List<Card> CardList = new List<Card>();
-                foreach (Card card in packages[0])
-                {
-                    CardList.Add(card);
-                }
-                userCards.Add(name,CardList);
-            }
-            packages.RemoveAt(0);
+            double damageA = cardA.IsSpell() ? CalculateSpellDamage(cardA) : cardA.Damage;
+            double damageB = cardB.IsSpell() ? CalculateSpellDamage(cardB) : cardB.Damage;
+
             
-        }
-
-        public static List<Card> userGetCards(string name)
-        {
-            if (userCards.ContainsKey(name))
+             if (cardA.IsSpell() && !cardB.IsSpell())
             {
-                return userCards[name];
+                // Handle Spell vs. Monster fight
+                damageA = ApplySpellModifiers(cardA, cardB, damageA);
+            }
+            else if (!cardA.IsSpell() && cardB.IsSpell())
+            {
+                // Handle Monster vs. Spell fight
+                damageB = ApplySpellModifiers(cardB, cardA, damageB);
+            }
+            else 
+            {
+                // Handle Monster vs. Monster fight
+                damageA = ApplyMonsterModifiers(cardA, cardB, damageA);
+                damageB = ApplyMonsterModifiers(cardB, cardA, damageB);
             }
 
-            return null;
+            return DetermineWinner(cardA, cardB, damageA, damageB);
         }
 
-        public static bool userSelectCards(string name,List<Card> cardIds)
+        private double CalculateSpellDamage(Card cardB)
         {
-                List<Card> deckList = new List<Card>();
-                foreach (Card card in userCards[name])
-                {
-                    if (card.Id == cardIds[0].Id)
-                    {
-                        deckList.Add(card);
-                        cardIds.RemoveAt(0);
-                        if(cardIds.Count == 0)
-                        {
-                            break;
-                        }
-                    }
-                }
-                if(deckList.Count == 4) {
-                userDeck.Add(name, deckList);
-                    return true;
-                }
-            return false;
+            throw new NotImplementedException();
         }
 
-        public static List<Card> userGetDeck(string name)
+        private double ApplyMonsterModifiers(Card cardA, Card cardB, double damageA)
         {
-            if (userDeck.ContainsKey(name))
+            throw new NotImplementedException();
+        }
+
+        private double ApplySpellModifiers(Card cardA, Card cardB, double damageA)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void UpdateDecks(List<Card> deckA, List<Card> deckB, RoundResult roundResult)
+        {
+            if (roundResult.Winner == Winner.PlayerA)
             {
-                return userCards[name];
+                deckB.Remove(roundResult.Loser);
+                deckA.Add(roundResult.Loser);
             }
+            else if (roundResult.Winner == Winner.PlayerB)
+            {
+                deckA.Remove(roundResult.Loser);
+                deckB.Add(roundResult.Loser);
+            }
+        }
 
-            return null;
-        }*/
-        public static void StartBattle(string player1, string player2)
+        private void UpdatePlayerStats(List<Card> deckA, List<Card> deckB, BattleResult battleResult)
         {
-          
+            // Implement logic to update player stats based on battle result
+            // ...
         }
     }
+
 }

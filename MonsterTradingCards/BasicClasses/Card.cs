@@ -38,6 +38,12 @@
             return false;
         }
 
+        public bool IsSpell()
+        {
+            // Überprüfen Sie, ob der Name "Spell" enthält, um einen Zauber zu identifizieren
+            return Name?.IndexOf("Spell", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
         public override string ToString()
         {
             return "Card: Id: " + Id + " Name: " + Name + " Damage: " + Damage;
