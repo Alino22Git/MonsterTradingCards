@@ -21,7 +21,6 @@ namespace MonsterTradingCards.GameFunctions
             RoundResults.Add(roundResult);
         }
 
-        // Hier können weitere Methoden oder Eigenschaften hinzugefügt werden, je nach Bedarf
     }
 
     public class RoundResult

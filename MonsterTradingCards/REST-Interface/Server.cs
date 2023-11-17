@@ -371,9 +371,9 @@ public class Server
                 if (playerQueue.Count >= 2)
                 {
                     // Starte den Kampf zwischen den ersten beiden Spielern in der Warteschlange
-                    var player1 = playerQueue.Dequeue();
-                    var player2 = playerQueue.Dequeue();
-                    GameLogic.StartBattle(player1, player2);
+                    var player1 = users.FirstOrDefault(user => user.Username == playerQueue.Dequeue());
+                    var player2 = users.FirstOrDefault(user => user.Username == playerQueue.Dequeue());
+                    GameLogic.StartBattle((List<Card>) dbRepo.UserGetDeck(player1), (List<Card>)dbRepo.UserGetDeck(player2));
 
                     responseType = "Battle started";
                 }
