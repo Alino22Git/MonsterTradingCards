@@ -32,25 +32,26 @@ public class Server
         Console.WriteLine("Server running. Waiting for Requests...");
 
         while (true)
-        {
-            try
-            {
-                using (var client = listener.AcceptTcpClient())
-                {
-                    Task.Factory.StartNew(() => HandleRequest(client));
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error in RunServer(): " + ex.Message);
-            }
-        }
-    }
-
-    private void HandleRequest(TcpClient client)
     {
         try
         {
+            var client = listener.AcceptTcpClient();
+
+            ThreadPool.QueueUserWorkItem(HandleRequest, client);
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error in RunServer(): " + ex.Message);
+        }
+    }
+    }
+
+    private void HandleRequest(object? oclient)
+    {
+        try
+        {
+            TcpClient? client = (TcpClient?) oclient;
             using (var stream = client.GetStream())
             using (var reader = new StreamReader(stream))
             using (var writer = new StreamWriter(stream) { AutoFlush = true })
@@ -371,8 +372,10 @@ public class Server
                 if (playerQueue.Count >= 2)
                 {
                     // Starte den Kampf zwischen den ersten beiden Spielern in der Warteschlange
-                    var player1 = users.FirstOrDefault(user => user.Username == playerQueue.Dequeue());
-                    var player2 = users.FirstOrDefault(user => user.Username == playerQueue.Dequeue());
+                    var name = playerQueue.Dequeue().Split('-');
+                    var player1 = users.FirstOrDefault(user => user.Username == name[0]);
+                    name = playerQueue.Dequeue().Split('-');
+                    var player2 = users.FirstOrDefault(user => user.Username == name[0]);
                     GameLogic.StartBattle((List<Card>) dbRepo.UserGetDeck(player1), (List<Card>)dbRepo.UserGetDeck(player2));
 
                     responseType = "Battle started";
@@ -543,11 +546,13 @@ public class Server
             else if (response == "Data successfully retrieved" ||
                      response == "User successfully updated" ||
                      response == "User login successful" || response == "A package has been successfully bought" ||
-                     response == "The user has cards, the response contains these" || 
+                     response == "The user has cards, the response contains these" ||
                      response == "The deck has cards, the response contains these" ||
                      response == "The scoreboard could be retrieved successfully." ||
                      response == "The stats could be retrieved successfully." ||
-                     response == "The deck has been successfully configured")
+                     response == "The deck has been successfully configured" ||
+                response == "Waiting for an opponent" ||
+                response == "Battle started")
             {
                 //Code 200
                 writer.WriteLine("HTTP/1.1 200 OK");
