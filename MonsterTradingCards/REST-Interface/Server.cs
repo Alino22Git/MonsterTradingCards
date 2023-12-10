@@ -359,6 +359,7 @@ public class Server
         }
         else if (path == "/battles")
         {
+            bool battleEnded = true;
             if (!tokenlist.Contains(token))
             {
                 responseType = "Access token is missing or invalid";
@@ -376,13 +377,17 @@ public class Server
                     var player1 = users.FirstOrDefault(user => user.Username == name[0]);
                     name = playerQueue.Dequeue().Split('-');
                     var player2 = users.FirstOrDefault(user => user.Username == name[0]);
-                    GameLogic.StartBattle((List<Card>) dbRepo.UserGetDeck(player1), (List<Card>)dbRepo.UserGetDeck(player2));
-
+                    //GameLogic.StartBattle((List<Card>) dbRepo.UserGetDeck(player1), (List<Card>)dbRepo.UserGetDeck(player2),dbRepo);
+                    GameLogic.StartBattle(player1,player2, dbRepo);
                     responseType = "Battle started";
+                    battleEnded = false;
                 }
                 else
                 {
-                    responseType = "Waiting for an opponent";
+                    while (battleEnded)
+                    {
+
+                    }
                 }
             }
         }

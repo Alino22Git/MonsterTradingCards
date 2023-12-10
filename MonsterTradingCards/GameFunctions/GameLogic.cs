@@ -9,17 +9,19 @@ namespace MonsterTradingCards.GameFunctions
 {
     public class GameLogic
     {
-        public static BattleResult StartBattle(List<Card> deck1, List<Card> deck2)
+        public static BattleResult StartBattle(User user1, User user2, DbRepo dbRepo)
         {
+            List<Card> deck1 = (List<Card>)dbRepo.UserGetDeck(user1);
+            List<Card> deck2 = (List<Card>)dbRepo.UserGetDeck(user2);
             BattleResult battleResult = new BattleResult();
             int roundCount = 0;
 
             while (roundCount < 100 && deck1.Count > 0 && deck2.Count > 0)
             {
-                var player1 = GetRandomCard(deck1);
-                var player2 = GetRandomCard(deck2);
+                var PlayerCard1 = GetRandomCard(deck1);
+                var PlayerCard2 = GetRandomCard(deck2);
 
-                var roundResult = FightRound(player1, player2);
+                var roundResult = FightRound(PlayerCard1, PlayerCard2);
                 battleResult.AddRoundResult(roundResult);
 
                 UpdateDecks(deck1, deck2, roundResult);
@@ -27,7 +29,7 @@ namespace MonsterTradingCards.GameFunctions
                 roundCount++;
             }
 
-            UpdatePlayerStats(deck1, deck2, battleResult);
+            UpdatePlayerStats(user1, user2, battleResult, dbRepo);
 
             return battleResult;
         }
@@ -44,14 +46,14 @@ namespace MonsterTradingCards.GameFunctions
 
         private static RoundResult FightRound(Card cardA, Card cardB)
         {
-            double damageA = cardA.IsSpell() ? CalculateSpellDamage(cardA,cardB) : cardA.Damage;
-            double damageB = cardB.IsSpell() ? CalculateSpellDamage(cardB,cardA) : cardB.Damage;
+            double damageA = cardA.IsSpell() ? CalculateSpellDamage(cardA, cardB) : cardA.Damage;
+            double damageB = cardB.IsSpell() ? CalculateSpellDamage(cardB, cardA) : cardB.Damage;
 
             damageA = SpecialCalculation(cardA, cardB);
             damageB = SpecialCalculation(cardB, cardA);
             return DetermineWinner(cardA, cardB, damageA, damageB);
         }
-        
+
 
         private static RoundResult DetermineWinner(Card cardA, Card cardB, double damageA, double damageB)
         {
@@ -120,9 +122,10 @@ namespace MonsterTradingCards.GameFunctions
                         return spellCard.Damage;
                     }
                 default:
-                    return spellCard.Damage; 
+                    return spellCard.Damage;
             }
         }
+
         private static double SpecialCalculation(Card card, Card opponentCard)
         {
             string spellType = GetElementFromCardName(card.Name);
@@ -163,9 +166,10 @@ namespace MonsterTradingCards.GameFunctions
                     return card.Damage;
             }
         }
+
         private static string GetElementFromCardName(string cardName)
         {
-            string[] elements = { "Water", "Fire", "Regular" }; 
+            string[] elements = { "Water", "Fire", "Regular" };
 
             foreach (string element in elements)
             {
@@ -180,7 +184,7 @@ namespace MonsterTradingCards.GameFunctions
 
         private static string GetTypeFromCardName(string cardName)
         {
-            string[] types = { "Knight", "Goblin", "Dragon", "Ork", "Wizard","Elv", "Spell", "Kraken" };
+            string[] types = { "Knight", "Goblin", "Dragon", "Ork", "Wizard", "Elv", "Spell", "Kraken" };
 
             foreach (string t in types)
             {
@@ -192,6 +196,7 @@ namespace MonsterTradingCards.GameFunctions
 
             return "Unknown";
         }
+
         private static void UpdateDecks(List<Card> deckA, List<Card> deckB, RoundResult roundResult)
         {
             if (roundResult.RoundWinner == Winner.PlayerA)
@@ -206,10 +211,32 @@ namespace MonsterTradingCards.GameFunctions
             }
         }
 
-        private static void UpdatePlayerStats(List<Card> deckA, List<Card> deckB, BattleResult battleResult)
+        private static void UpdatePlayerStats(User player1,User player2, BattleResult battleResult,
+            DbRepo dbRepo)
         {
-            
+            int winsA = 0, winsB = 0, draws = 0;
+            foreach (var round in battleResult.RoundResults)
+            {
+                if (round.RoundWinner == Winner.PlayerA)
+                {
+                    winsA++;
+                }
+                else if (round.RoundWinner == Winner.PlayerB)
+                {
+                    winsB++;
+                }
+                else if (round.RoundWinner == Winner.Draw)
+                {
+                    draws++;
+                }
+            }
+
+            player1.Battles = winsA + winsB + draws;
+            player1.Elo = player1.Elo + winsA * 3 - winsB * 5;
+            player2.Battles = winsA + winsB + draws;
+            player2.Elo = player2.Elo + winsB * 3 - winsA * 5;
+            dbRepo.UpdateUser(player1);
+            dbRepo.UpdateUser(player2);
         }
     }
-
 }
