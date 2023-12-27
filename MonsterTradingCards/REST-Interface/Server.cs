@@ -11,13 +11,14 @@ namespace MonsterTradingCards.REST_Interface;
 
 public class Server
 {
+    private static readonly object lockObject = new();
     private readonly string connectionString;
     private readonly TcpListener listener;
+    private readonly object lockO = new(); // Hier wird ein Objekt für die Synchronisation erstellt
+    private readonly Queue<string> playerQueue = new();
     private readonly int port = 10001;
-    private string token;
-    private readonly object lockO = new object(); // Hier wird ein Objekt für die Synchronisation erstellt
     private readonly List<string> tokenlist = new();
-    private readonly Queue<string> playerQueue = new Queue<string>();
+    private string token;
 
     public Server(string con)
     {
@@ -32,26 +33,23 @@ public class Server
         Console.WriteLine("Server running. Waiting for Requests...");
 
         while (true)
-    {
-        try
-        {
-            var client = listener.AcceptTcpClient();
+            try
+            {
+                var client = listener.AcceptTcpClient();
 
-            ThreadPool.QueueUserWorkItem(HandleRequest, client);
-
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error in RunServer(): " + ex.Message);
-        }
-    }
+                ThreadPool.QueueUserWorkItem(HandleRequest, client);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error in RunServer(): " + ex.Message);
+            }
     }
 
     private void HandleRequest(object? oclient)
     {
         try
         {
-            TcpClient? client = (TcpClient?) oclient;
+            var client = (TcpClient?)oclient;
             using (var stream = client.GetStream())
             using (var reader = new StreamReader(stream))
             using (var writer = new StreamWriter(stream) { AutoFlush = true })
@@ -64,23 +62,21 @@ public class Server
                     {
                         var httpMethod = parts[0];
                         var path = parts[1];
-                        
-                            Console.WriteLine($"Received request: {httpMethod} {path}");
-                            var dbRepo = new DbRepo(connectionString);
 
-                            if (httpMethod == "GET")
-                                GetMethods(path, writer, reader, dbRepo);
-                            else if (httpMethod == "POST")
-                                PostMethods(path, reader, writer, dbRepo);
-                            else if (httpMethod == "PUT")
-                                PutMethods(path, reader, writer, dbRepo);
-                            else if (httpMethod == "DELETE")
-                                DeleteMethods(path, writer, dbRepo);
-                        
+                        Console.WriteLine($"Received request: {httpMethod} {path}");
+                        var dbRepo = new DbRepo(connectionString);
+
+                        if (httpMethod == "GET")
+                            GetMethods(path, writer, reader, dbRepo);
+                        else if (httpMethod == "POST")
+                            PostMethods(path, reader, writer, dbRepo);
+                        else if (httpMethod == "PUT")
+                            PutMethods(path, reader, writer, dbRepo);
+                        else if (httpMethod == "DELETE")
+                            DeleteMethods(path, writer, dbRepo);
                     }
                 }
             }
-            
         }
         catch (Exception ex)
         {
@@ -185,14 +181,14 @@ public class Server
             else
             {
                 var amountofCards = dbRepo.UserGetCards(foundUser).Count();
-                int wins = foundUser.Battles - (foundUser.Battles - ((foundUser.Elo - 100) / 3)) / 2;
-                int losses = foundUser.Battles - wins;
-                objectResponse = JsonConvert.SerializeObject("Stats from User: "+foundUser.Username +"" +
-                                                             " Battles played: "+foundUser.Battles + "" +
+                var wins = foundUser.Battles - (foundUser.Battles - (foundUser.Elo - 100) / 3) / 2;
+                var losses = foundUser.Battles - wins;
+                objectResponse = JsonConvert.SerializeObject("Stats from User: " + foundUser.Username + "" +
+                                                             " Battles played: " + foundUser.Battles + "" +
                                                              " Wins: " + wins + "" +
-                                                             " Losses: " + losses +"" +
+                                                             " Losses: " + losses + "" +
                                                              " Current Elo: " + foundUser.Elo + "" +
-                                                             " Current amount of Cards: "+amountofCards);
+                                                             " Current amount of Cards: " + amountofCards);
                 responseType = "The stats could be retrieved successfully.";
             }
         }
@@ -204,19 +200,20 @@ public class Server
             }
             else
             {
-                List<String> scoreboard = new List<String>();
+                var scoreboard = new List<string>();
                 scoreboard.Add("Scoreboard: " +
                                "");
                 foreach (var u in users)
                 {
-                    int wins = u.Battles - (u.Battles - ((u.Elo-100) / 3)) / 2;
-                    int losses = u.Battles - wins;
-                    scoreboard.Add(" Username: "+u.Username+"" +
-                                   " Current Elo: "+u.Elo+"" +
-                                   " Wins: "+wins+"" +
-                                   " Losses: "+losses+"" +
-                                   " Battles: "+u.Battles);
+                    var wins = u.Battles - (u.Battles - (u.Elo - 100) / 3) / 2;
+                    var losses = u.Battles - wins;
+                    scoreboard.Add(" Username: " + u.Username + "" +
+                                   " Current Elo: " + u.Elo + "" +
+                                   " Wins: " + wins + "" +
+                                   " Losses: " + losses + "" +
+                                   " Battles: " + u.Battles);
                 }
+
                 objectResponse = JsonConvert.SerializeObject(scoreboard);
                 responseType = "The scoreboard could be retrieved successfully.";
             }
@@ -359,35 +356,42 @@ public class Server
         }
         else if (path == "/battles")
         {
-            bool battleEnded = true;
-            if (!tokenlist.Contains(token))
+            var battleEnded = true;
+            lock (lockObject)
             {
-                responseType = "Access token is missing or invalid";
-            }
-            else
-            {
-                // Füge den aktuellen Spieler zur Warteschlange hinzu
-                playerQueue.Enqueue(token);
-
-                // Überprüfe, ob es bereits einen wartenden Spieler gibt
-                if (playerQueue.Count >= 2)
+                
+                if (!tokenlist.Contains(token))
                 {
-                    // Starte den Kampf zwischen den ersten beiden Spielern in der Warteschlange
-                    var name = playerQueue.Dequeue().Split('-');
-                    var player1 = users.FirstOrDefault(user => user.Username == name[0]);
-                    name = playerQueue.Dequeue().Split('-');
-                    var player2 = users.FirstOrDefault(user => user.Username == name[0]);
-                    //GameLogic.StartBattle((List<Card>) dbRepo.UserGetDeck(player1), (List<Card>)dbRepo.UserGetDeck(player2),dbRepo);
-                    GameLogic.StartBattle(player1,player2, dbRepo);
-                    responseType = "Battle started";
-                    battleEnded = false;
+                    responseType = "Access token is missing or invalid";
                 }
                 else
                 {
-                    while (battleEnded)
-                    {
+                    // Füge den aktuellen Spieler zur Warteschlange hinzu
+                    playerQueue.Enqueue(token);
 
+
+                    // Überprüfe, ob es bereits einen wartenden Spieler gibt
+                    if (playerQueue.Count >= 2)
+                    {
+                        // Starte den Kampf zwischen den ersten beiden Spielern in der Warteschlange
+                        var name = playerQueue.Dequeue().Split('-');
+                        var player1 = users.FirstOrDefault(user => user.Username == name[0]);
+                        name = playerQueue.Dequeue().Split('-');
+                        var player2 = users.FirstOrDefault(user => user.Username == name[0]);
+                        //GameLogic.StartBattle((List<Card>) dbRepo.UserGetDeck(player1), (List<Card>)dbRepo.UserGetDeck(player2),dbRepo);
+                        GameLogic.StartBattle(player1, player2, dbRepo);
+                        responseType = "Battle started";
+                        battleEnded = false;
+                        Monitor.Pulse(lockObject);
                     }
+                }
+            }
+
+            lock (lockObject)
+            {
+                while (battleEnded)
+                {
+                    Monitor.Wait(lockObject);
                 }
             }
         }
@@ -468,25 +472,24 @@ public class Server
             else
             {
                 var found = 0;
-                List<Card> userCards = (List<Card>) dbRepo.UserGetCards(foundUser);
+                var userCards = (List<Card>)dbRepo.UserGetCards(foundUser);
 
-                for (int i = 0; i < userCards.Count; i++)
+                for (var i = 0; i < userCards.Count; i++)
                 {
-                    for (int x = found; x < postCards.Count; x++)
-                    {
+                    for (var x = found; x < postCards.Count; x++)
                         if (userCards[i].Id.Equals(postCards[x].Id))
                         {
                             found++;
                             break;
                         }
-                    }
+
                     if (found == 4)
                         break;
                 }
 
-                if (found==4)
+                if (found == 4)
                 {
-                    foreach (Card c in postCards)
+                    foreach (var c in postCards)
                     {
                         var card = userCards.FirstOrDefault(card => card.Id == c.Id);
                         card.Deck = 1;
@@ -497,7 +500,8 @@ public class Server
                 }
                 else
                 {
-                    responseType ="At least one of the provided cards does not belong to the user or is not available.";
+                    responseType =
+                        "At least one of the provided cards does not belong to the user or is not available.";
                 }
             }
         }
@@ -556,16 +560,16 @@ public class Server
                      response == "The scoreboard could be retrieved successfully." ||
                      response == "The stats could be retrieved successfully." ||
                      response == "The deck has been successfully configured" ||
-                response == "Waiting for an opponent" ||
-                response == "Battle started")
+                     response == "Waiting for an opponent" ||
+                     response == "Battle started")
             {
                 //Code 200
                 writer.WriteLine("HTTP/1.1 200 OK");
                 writer.WriteLine("Content-Type: text/plain");
             }
             else if (response == "Provided user is not admin" ||
-                     response == "Not enough money for buying a card package" || 
-                     response == "At least one of the provided cards does not belong to the user or is not available." )
+                     response == "Not enough money for buying a card package" ||
+                     response == "At least one of the provided cards does not belong to the user or is not available.")
             {
                 //Code 403
                 writer.WriteLine("HTTP/1.1 403 Forbidden");
@@ -585,6 +589,7 @@ public class Server
                 writer.WriteLine("HTTP/1.1 400 Bad Request");
                 writer.WriteLine("Content-Type: text/plain");
             }
+
             writer.WriteLine();
             if (response != "The request was fine, but the user doesn't have any cards")
             {
