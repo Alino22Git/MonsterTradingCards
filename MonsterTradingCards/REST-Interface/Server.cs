@@ -356,42 +356,52 @@ public class Server
         }
         else if (path == "/battles")
         {
-            var battleEnded = true;
+            var battleWait = false;
             lock (lockObject)
             {
-                
                 if (!tokenlist.Contains(token))
                 {
                     responseType = "Access token is missing or invalid";
                 }
                 else
                 {
-                    // Füge den aktuellen Spieler zur Warteschlange hinzu
-                    playerQueue.Enqueue(token);
-
-
-                    // Überprüfe, ob es bereits einen wartenden Spieler gibt
-                    if (playerQueue.Count >= 2)
+                    if (playerQueue.Contains(token))
                     {
-                        // Starte den Kampf zwischen den ersten beiden Spielern in der Warteschlange
-                        var name = playerQueue.Dequeue().Split('-');
-                        var player1 = users.FirstOrDefault(user => user.Username == name[0]);
-                        name = playerQueue.Dequeue().Split('-');
-                        var player2 = users.FirstOrDefault(user => user.Username == name[0]);
-                        //GameLogic.StartBattle((List<Card>) dbRepo.UserGetDeck(player1), (List<Card>)dbRepo.UserGetDeck(player2),dbRepo);
-                        GameLogic.StartBattle(player1, player2, dbRepo);
-                        responseType = "Battle started";
-                        battleEnded = false;
-                        Monitor.Pulse(lockObject);
+                        responseType = "User can not fight against himself";
+                    }
+                    else
+                    {
+                        // Füge den aktuellen Spieler zur Warteschlange hinzu
+                        playerQueue.Enqueue(token);
+                        battleWait = true;
+                        // Überprüfe, ob es bereits einen wartenden Spieler gibt
+                        if (playerQueue.Count >= 2)
+                        {
+                            // Starte den Kampf zwischen den ersten beiden Spielern in der Warteschlange
+                            var name = playerQueue.Dequeue().Split('-');
+                            var player1 = users.FirstOrDefault(user => user.Username == name[0]);
+                            name = playerQueue.Dequeue().Split('-');
+                            var player2 = users.FirstOrDefault(user => user.Username == name[0]);
+                            //GameLogic.StartBattle((List<Card>) dbRepo.UserGetDeck(player1), (List<Card>)dbRepo.UserGetDeck(player2),dbRepo);
+                            
+                            responseType = GameLogic.StartBattle(player1, player2, dbRepo);
+                            battleWait = false;
+                        }
                     }
                 }
+
+                Monitor.PulseAll(lockObject);
             }
 
-            lock (lockObject)
+            if (responseType != "User can not fight against himself")
             {
-                while (battleEnded)
+                lock (lockObject)
                 {
-                    Monitor.Wait(lockObject);
+                    if (battleWait)
+                    {
+                        Monitor.Wait(lockObject);
+                    }
+                    responseType = "Battle finished";
                 }
             }
         }
@@ -476,12 +486,17 @@ public class Server
 
                 for (var i = 0; i < userCards.Count; i++)
                 {
-                    for (var x = found; x < postCards.Count; x++)
+
+                    for (var x = 0; x < postCards.Count;x++)
+                    {
+                       // Console.Write( "Usercard: " + userCards[i].Id+ " = Postcard: " + postCards[x].Id + "\n");
                         if (userCards[i].Id.Equals(postCards[x].Id))
                         {
                             found++;
+                           // Console.WriteLine("RICHTIG\n");
                             break;
                         }
+                    }
 
                     if (found == 4)
                         break;
@@ -489,6 +504,7 @@ public class Server
 
                 if (found == 4)
                 {
+                    
                     foreach (var c in postCards)
                     {
                         var card = userCards.FirstOrDefault(card => card.Id == c.Id);
@@ -539,7 +555,8 @@ public class Server
                 writer.WriteLine("Content-Type: text/plain");
             }
             else if (response == "User with same username already registered" ||
-                     response == "At least one card in the packages already exists")
+                     response == "At least one card in the packages already exists" ||
+                     response == "User can not fight against himself")
             {
                 //Code 409
                 writer.WriteLine("HTTP/1.1 409 Conflict");
@@ -561,7 +578,8 @@ public class Server
                      response == "The stats could be retrieved successfully." ||
                      response == "The deck has been successfully configured" ||
                      response == "Waiting for an opponent" ||
-                     response == "Battle started")
+                     response == "Battle finished"||
+                     response.StartsWith("Gamelog:"))
             {
                 //Code 200
                 writer.WriteLine("HTTP/1.1 200 OK");

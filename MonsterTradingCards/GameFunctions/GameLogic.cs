@@ -9,19 +9,21 @@ namespace MonsterTradingCards.GameFunctions
 {
     public class GameLogic
     {
-        public static BattleResult StartBattle(User user1, User user2, DbRepo dbRepo)
+        public static String StartBattle(User user1, User user2, DbRepo dbRepo)
         {
             List<Card> deck1 = (List<Card>)dbRepo.UserGetDeck(user1);
             List<Card> deck2 = (List<Card>)dbRepo.UserGetDeck(user2);
             BattleResult battleResult = new BattleResult();
+            Log fightLog = new Log(user1,user2);
             int roundCount = 0;
 
             while (roundCount < 100 && deck1.Count > 0 && deck2.Count > 0)
             {
-                var PlayerCard1 = GetRandomCard(deck1);
-                var PlayerCard2 = GetRandomCard(deck2);
+                var playerCard1 = GetRandomCard(deck1);
+                var playerCard2 = GetRandomCard(deck2);
 
-                var roundResult = FightRound(PlayerCard1, PlayerCard2);
+                var roundResult = FightRound(playerCard1, playerCard2);
+                fightLog.AddEntry(playerCard1,playerCard2,roundResult,roundCount+1);
                 battleResult.AddRoundResult(roundResult);
 
                 UpdateDecks(deck1, deck2, roundResult);
@@ -29,9 +31,9 @@ namespace MonsterTradingCards.GameFunctions
                 roundCount++;
             }
 
-            UpdatePlayerStats(user1, user2, battleResult, dbRepo);
+            UpdatePlayerStats(user1, user2, battleResult, dbRepo, fightLog);
 
-            return battleResult;
+            return fightLog.GetFightLog();
         }
 
         private static Card GetRandomCard(List<Card> deck)
@@ -212,7 +214,7 @@ namespace MonsterTradingCards.GameFunctions
         }
 
         private static void UpdatePlayerStats(User player1,User player2, BattleResult battleResult,
-            DbRepo dbRepo)
+            DbRepo dbRepo, Log log)
         {
             int winsA = 0, winsB = 0, draws = 0;
             foreach (var round in battleResult.RoundResults)
@@ -235,6 +237,16 @@ namespace MonsterTradingCards.GameFunctions
             player1.Elo = player1.Elo + winsA * 3 - winsB * 5;
             player2.Battles = winsA + winsB + draws;
             player2.Elo = player2.Elo + winsB * 3 - winsA * 5;
+            if (player1.Elo < 0)
+            {
+                player1.Elo = 0;
+            }
+            else if (player2.Elo < 0)
+            {
+                player2.Elo = 0;
+            }
+
+            log.AddLasEntry(winsA, winsB, draws);
             dbRepo.UpdateUser(player1);
             dbRepo.UpdateUser(player2);
         }
