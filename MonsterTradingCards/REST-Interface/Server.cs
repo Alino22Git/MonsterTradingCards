@@ -235,7 +235,7 @@ public class Server
         var responseType = "";
         var requestBody = ReadToEnd(ReadLength(reader), reader);
 
-
+        var trades = (List<Trade>)dbRepo.GetAllTrades();
         var users = (List<User>)dbRepo.GetAllUsers();
         var cards = (List<Card>)dbRepo.GetAllCards();
 
@@ -407,6 +407,55 @@ public class Server
         }
         else if (path == "/tradings")
         {
+            var postTrade = JsonConvert.DeserializeObject<Trade>(requestBody);
+
+            if (token == "admin-mtcgToken" || !tokenlist.Contains(token))
+            {
+                responseType = "Access token is missing or invalid";
+            }
+            else if (postTrade == null)
+            {
+                responseType = "Invalid JSON data";
+            }
+            else
+            {
+                
+                var name = token.Split('-');
+                var user = users.FirstOrDefault(user => user.Username == name[0]);
+                var foundTrade = trades.FirstOrDefault(trade => trade.Id == postTrade.Id);
+                var userCards = (List<Card>)dbRepo.UserGetCards(user);
+                bool isOwned = false;
+                bool isNotInDeck = true;
+                foreach (Card c in userCards)
+                {
+                    if (c.Id == foundTrade.CardToTrade)
+                    {
+                        isOwned = true;
+                        if (c.Deck == 1)
+                        {
+                            isNotInDeck = false;
+                        }
+                    }
+                }
+                if (foundTrade == null)
+                {
+                    if (isOwned == false || isNotInDeck == true)
+                    {
+                        responseType = "The deal contains a card that is not owned by the user or locked in the deck.";
+                    }
+                    else
+                    {
+                        postTrade.UserId = user.UserId;
+                        dbRepo.AddTrade(postTrade);
+                        responseType = "Trading deal successfully created";
+                    }
+                }
+                else
+                {
+                    responseType = "A deal with this deal ID already exists.";
+                }
+            }
+           
         }
         else if (path.StartsWith("/tradings/"))
         {
@@ -548,7 +597,7 @@ public class Server
                 writer.WriteLine("HTTP/1.1 404 Not Found");
                 writer.WriteLine("Content-Type: text/plain");
             }
-            else if (response == "User successfully created" || response == "Package and cards successfully created")
+            else if (response == "User successfully created" || response == "Package and cards successfully created"|| response== "Trading deal successfully created")
             {
                 //Code 201
                 writer.WriteLine("HTTP/1.1 201 Created");
@@ -556,7 +605,8 @@ public class Server
             }
             else if (response == "User with same username already registered" ||
                      response == "At least one card in the packages already exists" ||
-                     response == "User can not fight against himself")
+                     response == "User can not fight against himself"||
+                     response == "A deal with this deal ID already exists.")
             {
                 //Code 409
                 writer.WriteLine("HTTP/1.1 409 Conflict");
@@ -587,7 +637,8 @@ public class Server
             }
             else if (response == "Provided user is not admin" ||
                      response == "Not enough money for buying a card package" ||
-                     response == "At least one of the provided cards does not belong to the user or is not available.")
+                     response == "At least one of the provided cards does not belong to the user or is not available."||
+                     response == "The deal contains a card that is not owned by the user or locked in the deck.")
             {
                 //Code 403
                 writer.WriteLine("HTTP/1.1 403 Forbidden");

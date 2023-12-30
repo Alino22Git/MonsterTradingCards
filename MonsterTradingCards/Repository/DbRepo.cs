@@ -205,7 +205,7 @@ public class DbRepo
                 cmd.ExecuteNonQuery();
                 cmd.CommandText = @"
                         CREATE TABLE IF NOT EXISTS Trade (
-                            tradeId SERIAL PRIMARY KEY, 
+                            tradeId VARCHAR(50) PRIMARY KEY, 
                             cardToTrade VARCHAR(50) NOT NULL,
                             type VARCHAR(255) NOT NULL,
                             minimumDamage INT,
@@ -569,5 +569,33 @@ public class DbRepo
                 command.ExecuteNonQuery();
             }
         }
+    }
+    public IEnumerable<Trade> GetAllTrades()
+    {
+        var data = new List<Trade>();
+        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        {
+            using (var command = connection.CreateCommand())
+            {
+                connection.Open();
+                command.CommandText = @"SELECT *
+                                        FROM Trade";
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var tradeId = reader.GetString(0);
+                        var cardToTrade = reader.GetString(1);
+                        var type = reader.GetString(2);
+                        var minimumDamage = reader.GetInt32(3);
+                        var userId = reader.GetInt32(4);
+
+                        data.Add(new Trade(tradeId,cardToTrade,type,minimumDamage,userId));
+                    }
+                }
+            }
+        }
+        return data;
     }
 }
