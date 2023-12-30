@@ -131,7 +131,7 @@ namespace MonsterTradingCards.GameFunctions
         private static double SpecialCalculation(Card card, Card opponentCard)
         {
             string spellType = GetElementFromCardName(card.Name);
-            string opponentType = GetElementFromCardName(opponentCard.Name);
+            string opponentType = GetTypeFromCardName(opponentCard.Name);
             string opponentElement = GetElementFromCardName(opponentCard.Name);
 
             switch (spellType)

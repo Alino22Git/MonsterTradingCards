@@ -203,6 +203,16 @@ public class DbRepo
                         )
                     ";
                 cmd.ExecuteNonQuery();
+                cmd.CommandText = @"
+                        CREATE TABLE IF NOT EXISTS Trade (
+                            tradeId SERIAL PRIMARY KEY, 
+                            cardToTrade VARCHAR(50) NOT NULL,
+                            type VARCHAR(255) NOT NULL,
+                            minimumDamage INT,
+                            userId INT
+                        )
+                    ";
+                cmd.ExecuteNonQuery();
             }
         }
     }
@@ -500,5 +510,64 @@ public class DbRepo
             return null;
         }
         return data;
+    }
+    public void AddTrade(Trade t)
+    {
+        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        {
+            using (var command = connection.CreateCommand())
+            {
+                connection.Open();
+                command.CommandText = @"INSERT INTO Trade (tradeid, cardtotrade,type, minimumdamage,userid)
+                                    VALUES (@tid, @ctt, @type, @md,@ui)";
+
+
+                var tidParameter = command.CreateParameter();
+                tidParameter.ParameterName = "tid";
+                tidParameter.Value = t.Id;
+                command.Parameters.Add(tidParameter);
+
+                var cttParameter = command.CreateParameter();
+                cttParameter.ParameterName = "ctt";
+                cttParameter.Value = t.CardToTrade;
+                command.Parameters.Add(cttParameter);
+
+                var typeParameter = command.CreateParameter();
+                typeParameter.ParameterName = "type";
+                typeParameter.Value = t.Type;
+                command.Parameters.Add(typeParameter);
+
+                var mdParameter = command.CreateParameter();
+                mdParameter.ParameterName = "md";
+                mdParameter.Value = t.MinimumDamage;
+                command.Parameters.Add(mdParameter);
+
+                var uidParameter = command.CreateParameter();
+                uidParameter.ParameterName = "ui";
+                uidParameter.Value = t.UserId;
+                command.Parameters.Add(uidParameter);
+
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+
+    public void DeleteTrade(Trade t)
+    {
+        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        {
+            using (var command = connection.CreateCommand())
+            {
+                connection.Open();
+                command.CommandText = @"DELETE FROM Trade WHERE tradeId = @tid";
+
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = "tid";
+                parameter.Value = t.Id;
+                command.Parameters.Add(parameter);
+
+                command.ExecuteNonQuery();
+            }
+        }
     }
 }
