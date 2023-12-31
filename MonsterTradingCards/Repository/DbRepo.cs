@@ -596,6 +596,9 @@ public class DbRepo
                 }
             }
         }
+
+        if (data.Count == 0)
+            data = null;
         return data;
     }
 }

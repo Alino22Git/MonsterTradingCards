@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Text.RegularExpressions;
 using MonsterTradingCards.BasicClasses;
@@ -73,7 +74,7 @@ public class Server
                         else if (httpMethod == "PUT")
                             PutMethods(path, reader, writer, dbRepo);
                         else if (httpMethod == "DELETE")
-                            DeleteMethods(path, writer, dbRepo);
+                            DeleteMethods(path,reader, writer, dbRepo);
                     }
                 }
             }
@@ -87,7 +88,7 @@ public class Server
     public void GetMethods(string path, StreamWriter writer, StreamReader reader, DbRepo dbRepo)
     {
         var objectResponse = "";
-        var responseType = "";
+        var responseType = "Bad Request";
         var requestBody = ReadToEnd(ReadLength(reader), reader);
         var users = (List<User>)dbRepo.GetAllUsers();
 
@@ -220,11 +221,25 @@ public class Server
         }
         else if (path == "/tradings")
         {
+            if (token == "admin-mtcgToken" || !tokenlist.Contains(token))
+            {
+                responseType = "Access token is missing or invalid";
+            }
+            else
+            {
+                var tradings = (List<Trade>)dbRepo.GetAllTrades();
+                if (tradings != null)
+                {
+                    responseType = "There are trading deals available, the response contains these";
+                    objectResponse = JsonConvert.SerializeObject(tradings);
+                }
+                else
+                {
+                    responseType = "The request was fine, but there are no trading deals available";
+                }
+            }
         }
-        else
-        {
-            responseType = "Bad Request";
-        }
+        
 
         CreateAndSendResponse(responseType, writer, objectResponse);
     }
@@ -232,7 +247,7 @@ public class Server
     public void PostMethods(string path, StreamReader reader, StreamWriter writer, DbRepo dbRepo)
     {
         var objectResponse = "";
-        var responseType = "";
+        var responseType = "Bad Request";
         var requestBody = ReadToEnd(ReadLength(reader), reader);
 
         var trades = (List<Trade>)dbRepo.GetAllTrades();
@@ -428,7 +443,7 @@ public class Server
                 bool isNotInDeck = true;
                 foreach (Card c in userCards)
                 {
-                    if (c.Id == foundTrade.CardToTrade)
+                    if (c.Id == postTrade.CardToTrade)
                     {
                         isOwned = true;
                         if (c.Deck == 1)
@@ -437,18 +452,15 @@ public class Server
                         }
                     }
                 }
-                if (foundTrade == null)
+                if (isOwned == false || isNotInDeck == false)
                 {
-                    if (isOwned == false || isNotInDeck == true)
-                    {
-                        responseType = "The deal contains a card that is not owned by the user or locked in the deck.";
-                    }
-                    else
-                    {
+                    responseType = "The deal contains a card that is not owned by the user or locked in the deck.";
+                }else if (foundTrade == null)
+                {
                         postTrade.UserId = user.UserId;
                         dbRepo.AddTrade(postTrade);
                         responseType = "Trading deal successfully created";
-                    }
+                    
                 }
                 else
                 {
@@ -460,10 +472,7 @@ public class Server
         else if (path.StartsWith("/tradings/"))
         {
         }
-        else
-        {
-            responseType = "Bad Request";
-        }
+       
 
         CreateAndSendResponse(responseType, writer, objectResponse);
     }
@@ -471,7 +480,7 @@ public class Server
     public void PutMethods(string path, StreamReader reader, StreamWriter writer, DbRepo dbRepo)
     {
         var objectResponse = "";
-        var responseType = "";
+        var responseType = "Bad Request";
         var requestBody = ReadToEnd(ReadLength(reader), reader);
         var users = (List<User>)dbRepo.GetAllUsers();
         if (path.StartsWith("/users/"))
@@ -570,19 +579,44 @@ public class Server
                 }
             }
         }
-        else
-        {
-            responseType = "Bad Request";
-        }
 
         CreateAndSendResponse(responseType, writer, objectResponse);
     }
 
-    public void DeleteMethods(string path, StreamWriter writer, DbRepo dbRepo)
+    public void DeleteMethods(string path,StreamReader reader, StreamWriter writer, DbRepo dbRepo)
     {
         var objectResponse = "";
-        var responseType = "";
-        if (path.StartsWith("/tradings/")) objectResponse = "Delete /tradings/{tradingdealid}";
+        var responseType = "Bad Request";
+        var trades = (List<Trade>)dbRepo.GetAllTrades();
+        var users = (List<User>)dbRepo.GetAllUsers();
+        ReadToEnd(ReadLength(reader), reader);
+        if (path.StartsWith("/tradings/"))
+        {
+            //Get /{tradingid}
+            var tradingId = path.Substring("/tradings/".Length);
+            var foundTrade = trades.FirstOrDefault(trade => trade.Id == tradingId);
+            if (foundTrade == null)
+            {
+                responseType = "The provided deal ID was not found.";
+            }
+            else
+            {
+                var usersTrade = users.FirstOrDefault(user => user.UserId == foundTrade.UserId);
+
+                if(!tokenlist.Contains(token))
+                {
+                    responseType = "Access token is missing or invalid";
+                }else if (token != usersTrade.Username + "-mtcgToken" && token != "admin-mtcgToken")
+                {
+                    responseType = "The deal contains a card that is not owned by the user.";
+                }
+                else 
+                {
+                    dbRepo.DeleteTrade(foundTrade);
+                    responseType = "Trading deal successfully deleted";
+                }
+            }
+        }
 
         CreateAndSendResponse(responseType, writer, objectResponse);
     }
@@ -591,7 +625,7 @@ public class Server
     {
         try
         {
-            if (response == "User not found." || response == "No card package available for buying")
+            if (response == "User not found." || response == "No card package available for buying" || response == "The provided deal ID was not found.")
             {
                 //Code 404
                 writer.WriteLine("HTTP/1.1 404 Not Found");
@@ -628,7 +662,9 @@ public class Server
                      response == "The stats could be retrieved successfully." ||
                      response == "The deck has been successfully configured" ||
                      response == "Waiting for an opponent" ||
-                     response == "Battle finished"||
+                     response == "Battle finished"|| 
+                     response == "There are trading deals available, the response contains these"|| 
+                     response == "Trading deal successfully deleted"||
                      response.StartsWith("Gamelog:"))
             {
                 //Code 200
@@ -638,13 +674,14 @@ public class Server
             else if (response == "Provided user is not admin" ||
                      response == "Not enough money for buying a card package" ||
                      response == "At least one of the provided cards does not belong to the user or is not available."||
-                     response == "The deal contains a card that is not owned by the user or locked in the deck.")
+                     response == "The deal contains a card that is not owned by the user or locked in the deck."||
+                     response == "The deal contains a card that is not owned by the user.")
             {
                 //Code 403
                 writer.WriteLine("HTTP/1.1 403 Forbidden");
                 writer.WriteLine("Content-Type: text/plain");
             }
-            else if (response == "The request was fine, but the user doesn't have any cards")
+            else if (response == "The request was fine, but the user doesn't have any cards"|| response== "The request was fine, but there are no trading deals available")
             {
                 //Code 204
                 writer.WriteLine("HTTP/1.1 204 No Content");
@@ -660,7 +697,7 @@ public class Server
             }
 
             writer.WriteLine();
-            if (response != "The request was fine, but the user doesn't have any cards")
+            if (response != "The request was fine, but the user doesn't have any cards"&& response != "The request was fine, but there are no trading deals available")
             {
                 writer.WriteLine(response);
                 writer.WriteLine(objectResponse);
