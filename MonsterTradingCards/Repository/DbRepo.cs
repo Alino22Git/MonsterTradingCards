@@ -439,6 +439,32 @@ public class DbRepo
         }
     }
 
+    public void UpdateUserCardDependency(int uid, String cid)
+    {
+        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        {
+            using (var command = connection.CreateCommand())
+            {
+                connection.Open();
+                command.CommandText = @"UPDATE UserCard
+                                            SET cardId = @cid
+                                            WHERE userId = @uid";
+
+                var cidParameter = command.CreateParameter();
+                cidParameter.ParameterName = "cid";
+                cidParameter.Value = cid;
+                command.Parameters.Add(cidParameter);
+
+                var uidParameter = command.CreateParameter();
+                uidParameter.ParameterName = "uid";
+                uidParameter.Value = uid;
+                command.Parameters.Add(uidParameter);
+
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+
     public IEnumerable<Card> UserGetCards(User user)
     {
         var data = new List<Card>();

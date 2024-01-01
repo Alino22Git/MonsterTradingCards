@@ -240,7 +240,6 @@ public class Server
             }
         }
         
-
         CreateAndSendResponse(responseType, writer, objectResponse);
     }
 
@@ -471,6 +470,61 @@ public class Server
         }
         else if (path.StartsWith("/tradings/"))
         {
+            var tradingId = path.Substring("/tradings/".Length);
+            var trade = trades.FirstOrDefault(trade => trade.Id == tradingId);
+            var requestingUser = users.FirstOrDefault(user => user.UserId == trade.UserId);
+            var offeredCardId = JsonConvert.DeserializeObject<String>(requestBody);
+            var offeredCard = cards.FirstOrDefault(cards => cards.Id == offeredCardId);
+            var name = token.Split('-');
+            var offeringUser = users.FirstOrDefault(user => user.Username == name[0]);
+            var allofferingUserCards = dbRepo.UserGetCards(offeringUser);
+            var offeringCardElement = GameLogic.GetTypeFromCardName(offeredCard.Name);
+            var requestCard = cards.FirstOrDefault(cards => cards.Id == trade.Id);
+
+
+            if (trade == null)
+            {
+                responseType = "The provided deal ID was not found.";
+            }
+            else
+            {
+                if (!tokenlist.Contains(token))
+                {
+                    responseType = "Access token is missing or invalid";
+                }
+                else if (offeredCardId == null)
+                {
+                    responseType = "Invalid JSON data";
+                }
+                else
+                {
+                    bool isOwned = false;
+                    bool isNotInDeck = true;
+                    foreach (Card c in allofferingUserCards)
+                    {
+                        if (c.Id == offeredCardId)
+                        {
+                            isOwned = true;
+                            if (c.Deck == 1)
+                            {
+                                isNotInDeck = false;
+                            }
+                        }
+                    }
+
+                    if (isOwned == false || isNotInDeck == false || requestingUser.UserId== offeringUser.UserId||offeredCard.Damage>=trade.MinimumDamage||offeringCardElement!=trade.Type)
+                    {
+                        responseType = "The offered card is not owned by the user, or the requirements are not met (Type, MinimumDamage), or the offered card is locked in the deck, or the user tries to trade with self";
+                    }
+                    else
+                    {
+                        dbRepo.UpdateUserCardDependency(offeringUser.UserId,trade.CardToTrade);
+                        dbRepo.UpdateUserCardDependency(requestingUser.UserId, offeredCardId);
+                        dbRepo.DeleteTrade(trade);
+                        responseType = "Trading deal successfully executed.";
+                    }
+                }
+            }
         }
        
 
@@ -675,7 +729,9 @@ public class Server
                      response == "Not enough money for buying a card package" ||
                      response == "At least one of the provided cards does not belong to the user or is not available."||
                      response == "The deal contains a card that is not owned by the user or locked in the deck."||
-                     response == "The deal contains a card that is not owned by the user.")
+                     response == "The deal contains a card that is not owned by the user."||
+                     response == "The offered card is not owned by the user, or the requirements are not met (Type, MinimumDamage), or the offered card is locked in the deck, or the user tries to trade with self"
+                     )
             {
                 //Code 403
                 writer.WriteLine("HTTP/1.1 403 Forbidden");

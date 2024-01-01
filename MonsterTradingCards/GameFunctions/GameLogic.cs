@@ -184,7 +184,7 @@ namespace MonsterTradingCards.GameFunctions
             return "Unknown";
         }
 
-        private static string GetTypeFromCardName(string cardName)
+        public static string GetTypeFromCardName(string cardName)
         {
             string[] types = { "Knight", "Goblin", "Dragon", "Ork", "Wizard", "Elv", "Spell", "Kraken" };
 
