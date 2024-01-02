@@ -23,12 +23,17 @@
             this.Deck = deck;
         }
 
+        public Card(string? id)
+        {
+            this.Id = id;
+        }
+
         public override int GetHashCode()
         {
             return Id?.GetHashCode() ?? 0;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is Card otherCard)
             {

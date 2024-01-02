@@ -8,9 +8,9 @@ namespace MonsterTradingCards.BasicClasses
 {
     public class Trade
     {
-        public string Id { get; set; }
-        public string CardToTrade { get; set; }
-        public string Type { get; set; }
+        public string? Id { get; set; }
+        public string? CardToTrade { get; set; }
+        public string? Type { get; set; }
         public int MinimumDamage { get; set; }
         public int UserId { get; set; }
 
@@ -20,7 +20,7 @@ namespace MonsterTradingCards.BasicClasses
 
         }
 
-        public Trade(string id, string cardToTrade, string type, int minimumDamage,int userId)
+        public Trade(string? id, string? cardToTrade, string? type, int minimumDamage,int userId)
         {
             Id = id;
             CardToTrade = cardToTrade;
@@ -29,7 +29,7 @@ namespace MonsterTradingCards.BasicClasses
             UserId = userId;
         }
 
-        public Trade(string id, string cardToTrade, string type, int minimumDamage)
+        public Trade(string? id, string? cardToTrade, string? type, int minimumDamage)
         {
             Id = id;
             CardToTrade = cardToTrade;

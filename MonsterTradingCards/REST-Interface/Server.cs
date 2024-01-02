@@ -16,10 +16,11 @@ public class Server
     private readonly string connectionString;
     private readonly TcpListener listener;
     private readonly object lockO = new(); // Hier wird ein Objekt für die Synchronisation erstellt
-    private readonly Queue<string> playerQueue = new();
+    private readonly Queue<string?> playerQueue = new();
     private readonly int port = 10001;
-    private readonly List<string> tokenlist = new();
-    private string token;
+    private readonly List<string?> tokenlist = new();
+    private string? token;
+    private string? lastBattleLog;
 
     public Server(string con)
     {
@@ -48,10 +49,11 @@ public class Server
 
     private void HandleRequest(object? oclient)
     {
+      
         try
         {
             var client = (TcpClient?)oclient;
-            using (var stream = client.GetStream())
+            using (var stream = client!.GetStream())
             using (var reader = new StreamReader(stream))
             using (var writer = new StreamWriter(stream) { AutoFlush = true })
             {
@@ -114,7 +116,7 @@ public class Server
         }
         else if (path == "/cards")
         {
-            User foundUser = null;
+            User? foundUser = null;
             if (token != null)
             {
                 var name = token.Split('-');
@@ -127,7 +129,7 @@ public class Server
             }
             else
             {
-                var userCards = (List<Card>)dbRepo.UserGetCards(foundUser);
+                var userCards = (List<Card>)dbRepo.UserGetCards(foundUser)!;
                 if (userCards != null)
                 {
                     responseType = "The user has cards, the response contains these";
@@ -141,7 +143,7 @@ public class Server
         }
         else if (path == "/deck")
         {
-            User foundUser = null;
+            User? foundUser = null;
             if (token != null)
             {
                 var name = token.Split('-');
@@ -154,7 +156,7 @@ public class Server
             }
             else
             {
-                var userDeck = (List<Card>)dbRepo.UserGetDeck(foundUser);
+                var userDeck = (List<Card>)dbRepo.UserGetDeck(foundUser)!;
                 if (userDeck != null)
                 {
                     responseType = "The deck has cards, the response contains these";
@@ -168,7 +170,7 @@ public class Server
         }
         else if (path == "/stats")
         {
-            User foundUser = null;
+            User? foundUser = null;
             if (token != null)
             {
                 var name = token.Split('-');
@@ -181,8 +183,8 @@ public class Server
             }
             else
             {
-                var amountofCards = dbRepo.UserGetCards(foundUser).Count();
-                var wins = foundUser.Battles - (foundUser.Battles - (foundUser.Elo - 100) / 3) / 2;
+                var amountofCards = (dbRepo.UserGetCards(foundUser) ?? throw new InvalidOperationException()).Count();
+                var wins = foundUser!.Battles - (foundUser.Battles - (foundUser.Elo - 100) / 3) / 2;
                 var losses = foundUser.Battles - wins;
                 objectResponse = JsonConvert.SerializeObject("Stats from User: " + foundUser.Username + "" +
                                                              " Battles played: " + foundUser.Battles + "" +
@@ -227,7 +229,7 @@ public class Server
             }
             else
             {
-                var tradings = (List<Trade>)dbRepo.GetAllTrades();
+                var tradings = (List<Trade>)dbRepo.GetAllTrades()!;
                 if (tradings != null)
                 {
                     responseType = "There are trading deals available, the response contains these";
@@ -249,7 +251,7 @@ public class Server
         var responseType = "Bad Request";
         var requestBody = ReadToEnd(ReadLength(reader), reader);
 
-        var trades = (List<Trade>)dbRepo.GetAllTrades();
+        var trades = (List<Trade>)dbRepo.GetAllTrades()!;
         var users = (List<User>)dbRepo.GetAllUsers();
         var cards = (List<Card>)dbRepo.GetAllCards();
 
@@ -340,7 +342,7 @@ public class Server
         }
         else if (path == "/transactions/packages")
         {
-            User foundUser = null;
+            User? foundUser = null;
             if (token != null)
             {
                 var name = token.Split('-');
@@ -351,7 +353,7 @@ public class Server
             {
                 responseType = "Access token is missing or invalid";
             }
-            else if (foundUser.Money < 5)
+            else if (foundUser!.Money < 5)
             {
                 responseType = "Not enough money for buying a card package";
             }
@@ -361,7 +363,7 @@ public class Server
             }
             else
             {
-                objectResponse = JsonConvert.SerializeObject((List<Card>)dbRepo.GetCardPackage());
+                objectResponse = JsonConvert.SerializeObject((List<Card>)dbRepo.GetCardPackage()!);
                 dbRepo.UserAquireCards(foundUser);
                 responseType = "A package has been successfully bought";
                 foundUser.Money -= 5;
@@ -385,6 +387,7 @@ public class Server
                     }
                     else
                     {
+                        lastBattleLog = "no Log";
                         // Füge den aktuellen Spieler zur Warteschlange hinzu
                         playerQueue.Enqueue(token);
                         battleWait = true;
@@ -392,13 +395,13 @@ public class Server
                         if (playerQueue.Count >= 2)
                         {
                             // Starte den Kampf zwischen den ersten beiden Spielern in der Warteschlange
-                            var name = playerQueue.Dequeue().Split('-');
-                            var player1 = users.FirstOrDefault(user => user.Username == name[0]);
-                            name = playerQueue.Dequeue().Split('-');
-                            var player2 = users.FirstOrDefault(user => user.Username == name[0]);
+                            var name = playerQueue.Dequeue()?.Split('-');
+                            var player1 = users.FirstOrDefault(user => user.Username == name?[0]);
+                            name = playerQueue.Dequeue()?.Split('-');
+                            var player2 = users.FirstOrDefault(user => user.Username == name?[0]);
                             //GameLogic.StartBattle((List<Card>) dbRepo.UserGetDeck(player1), (List<Card>)dbRepo.UserGetDeck(player2),dbRepo);
                             
-                            responseType = GameLogic.StartBattle(player1, player2, dbRepo);
+                            lastBattleLog = GameLogic.StartBattle(player1, player2, dbRepo);
                             battleWait = false;
                         }
                     }
@@ -415,7 +418,7 @@ public class Server
                     {
                         Monitor.Wait(lockObject);
                     }
-                    responseType = "Battle finished";
+                    responseType = lastBattleLog;
                 }
             }
         }
@@ -433,53 +436,75 @@ public class Server
             }
             else
             {
-                
-                var name = token.Split('-');
-                var user = users.FirstOrDefault(user => user.Username == name[0]);
-                var foundTrade = trades.FirstOrDefault(trade => trade.Id == postTrade.Id);
-                var userCards = (List<Card>)dbRepo.UserGetCards(user);
+                var name = token?.Split('-');
+                var user = users.FirstOrDefault(user => user.Username == name?[0]);
+                var userCards = (List<Card>)dbRepo.UserGetCards(user)!;
                 bool isOwned = false;
                 bool isNotInDeck = true;
-                foreach (Card c in userCards)
-                {
-                    if (c.Id == postTrade.CardToTrade)
+
+                if (userCards != null)
+                    foreach (Card c in userCards)
                     {
-                        isOwned = true;
-                        if (c.Deck == 1)
+                        if (c.Id == postTrade.CardToTrade)
                         {
-                            isNotInDeck = false;
+                            isOwned = true;
+                            if (c.Deck == 1)
+                            {
+                                isNotInDeck = false;
+                            }
                         }
                     }
-                }
+
                 if (isOwned == false || isNotInDeck == false)
                 {
                     responseType = "The deal contains a card that is not owned by the user or locked in the deck.";
-                }else if (foundTrade == null)
-                {
-                        postTrade.UserId = user.UserId;
-                        dbRepo.AddTrade(postTrade);
-                        responseType = "Trading deal successfully created";
-                    
                 }
                 else
                 {
-                    responseType = "A deal with this deal ID already exists.";
+                  
+
+                    if (trades != null)
+                    {
+                        var foundTrade = trades.FirstOrDefault(trade => trade.Id == postTrade.Id);
+                        if (foundTrade != null)
+                        {
+                            responseType = "A deal with this deal ID already exists.";
+                        }
+                        else
+                        {
+                            postTrade.UserId = user!.UserId;
+                            dbRepo.AddTrade(postTrade);
+                            responseType = "Trading deal successfully created";
+                        }
+                    }
+                    else
+                    {
+                            postTrade.UserId = user!.UserId;
+                            dbRepo.AddTrade(postTrade);
+                            responseType = "Trading deal successfully created";
+                        
+                    }
                 }
             }
-           
         }
         else if (path.StartsWith("/tradings/"))
         {
             var tradingId = path.Substring("/tradings/".Length);
+            if (trades == null)
+            {
+                responseType = "The provided deal ID was not found.";
+                CreateAndSendResponse(responseType, writer, objectResponse);
+                return;
+            }
             var trade = trades.FirstOrDefault(trade => trade.Id == tradingId);
-            var requestingUser = users.FirstOrDefault(user => user.UserId == trade.UserId);
-            var offeredCardId = JsonConvert.DeserializeObject<String>(requestBody);
-            var offeredCard = cards.FirstOrDefault(cards => cards.Id == offeredCardId);
-            var name = token.Split('-');
-            var offeringUser = users.FirstOrDefault(user => user.Username == name[0]);
+            var requestingUser = users.FirstOrDefault(user => user.UserId == trade?.UserId);
+            var offeredCardId = JsonConvert.DeserializeObject<Card>(requestBody);
+            var offeredCard = cards.FirstOrDefault(cards => cards.Id == offeredCardId?.Id);
+            var name = token?.Split('-');
+            var offeringUser = users.FirstOrDefault(user => user.Username == name?[0]);
             var allofferingUserCards = dbRepo.UserGetCards(offeringUser);
-            var offeringCardElement = GameLogic.GetTypeFromCardName(offeredCard.Name);
-            var requestCard = cards.FirstOrDefault(cards => cards.Id == trade.Id);
+            var offeringCardElement = GameLogic.GetTypeFromCardName(offeredCard?.Name);
+            var requestCard = cards.FirstOrDefault(cards => cards.Id == trade?.Id);
 
 
             if (trade == null)
@@ -500,26 +525,27 @@ public class Server
                 {
                     bool isOwned = false;
                     bool isNotInDeck = true;
-                    foreach (Card c in allofferingUserCards)
-                    {
-                        if (c.Id == offeredCardId)
+                    if (allofferingUserCards != null)
+                        foreach (Card c in allofferingUserCards)
                         {
-                            isOwned = true;
-                            if (c.Deck == 1)
+                            if (c.Id == offeredCardId.Id)
                             {
-                                isNotInDeck = false;
+                                isOwned = true;
+                                if (c.Deck == 1)
+                                {
+                                    isNotInDeck = false;
+                                }
                             }
                         }
-                    }
 
-                    if (isOwned == false || isNotInDeck == false || requestingUser.UserId== offeringUser.UserId||offeredCard.Damage>=trade.MinimumDamage||offeringCardElement!=trade.Type)
+                    if (offeringUser != null && (isOwned == false || isNotInDeck == false || requestingUser?.UserId == offeringUser.UserId||offeredCard?.Damage <trade.MinimumDamage||offeringCardElement!=trade.Type))
                     {
                         responseType = "The offered card is not owned by the user, or the requirements are not met (Type, MinimumDamage), or the offered card is locked in the deck, or the user tries to trade with self";
                     }
                     else
                     {
-                        dbRepo.UpdateUserCardDependency(offeringUser.UserId,trade.CardToTrade);
-                        dbRepo.UpdateUserCardDependency(requestingUser.UserId, offeredCardId);
+                        dbRepo.UpdateUserCardDependency(offeringUser!.UserId,trade.CardToTrade);
+                        dbRepo.UpdateUserCardDependency(requestingUser!.UserId, offeredCardId.Id);
                         dbRepo.DeleteTrade(trade);
                         responseType = "Trading deal successfully executed.";
                     }
@@ -572,7 +598,7 @@ public class Server
         {
             var postCards = JsonConvert.DeserializeObject<List<Card>>(requestBody);
 
-            User foundUser = null;
+            User? foundUser = null;
             if (token != null)
             {
                 var name = token.Split('-');
@@ -594,15 +620,16 @@ public class Server
             else
             {
                 var found = 0;
-                var userCards = (List<Card>)dbRepo.UserGetCards(foundUser);
+                var userCards = (List<Card>)dbRepo.UserGetCards(foundUser)!;
 
                 for (var i = 0; i < userCards.Count; i++)
                 {
 
                     for (var x = 0; x < postCards.Count;x++)
                     {
-                       // Console.Write( "Usercard: " + userCards[i].Id+ " = Postcard: " + postCards[x].Id + "\n");
-                        if (userCards[i].Id.Equals(postCards[x].Id))
+                        // Console.Write( "Usercard: " + userCards[i].Id+ " = Postcard: " + postCards[x].Id + "\n");
+                        var id = userCards[i].Id;
+                        if (id != null && id.Equals(postCards[x].Id))
                         {
                             found++;
                            // Console.WriteLine("RICHTIG\n");
@@ -620,8 +647,11 @@ public class Server
                     foreach (var c in postCards)
                     {
                         var card = userCards.FirstOrDefault(card => card.Id == c.Id);
-                        card.Deck = 1;
-                        dbRepo.UpdateCard(card);
+                        if (card != null)
+                        {
+                            card.Deck = 1;
+                            dbRepo.UpdateCard(card);
+                        }
                     }
 
                     responseType = "The deck has been successfully configured";
@@ -641,11 +671,17 @@ public class Server
     {
         var objectResponse = "";
         var responseType = "Bad Request";
-        var trades = (List<Trade>)dbRepo.GetAllTrades();
+        var trades = (List<Trade>)dbRepo.GetAllTrades()!;
         var users = (List<User>)dbRepo.GetAllUsers();
         ReadToEnd(ReadLength(reader), reader);
         if (path.StartsWith("/tradings/"))
         {
+            if (trades == null)
+            {
+                responseType = "The provided deal ID was not found.";
+                CreateAndSendResponse(responseType, writer, objectResponse);
+                return;
+            }
             //Get /{tradingid}
             var tradingId = path.Substring("/tradings/".Length);
             var foundTrade = trades.FirstOrDefault(trade => trade.Id == tradingId);
@@ -660,7 +696,7 @@ public class Server
                 if(!tokenlist.Contains(token))
                 {
                     responseType = "Access token is missing or invalid";
-                }else if (token != usersTrade.Username + "-mtcgToken" && token != "admin-mtcgToken")
+                }else if (token != usersTrade?.Username + "-mtcgToken" && token != "admin-mtcgToken")
                 {
                     responseType = "The deal contains a card that is not owned by the user.";
                 }
@@ -675,7 +711,7 @@ public class Server
         CreateAndSendResponse(responseType, writer, objectResponse);
     }
 
-    private void CreateAndSendResponse(string response, StreamWriter writer, string objectResponse)
+    private void CreateAndSendResponse(string? response, StreamWriter writer, string objectResponse)
     {
         try
         {
@@ -719,7 +755,8 @@ public class Server
                      response == "Battle finished"|| 
                      response == "There are trading deals available, the response contains these"|| 
                      response == "Trading deal successfully deleted"||
-                     response.StartsWith("Gamelog:"))
+                     response == "Trading deal successfully executed."||
+                     response!.StartsWith("Gamelog:"))
             {
                 //Code 200
                 writer.WriteLine("HTTP/1.1 200 OK");

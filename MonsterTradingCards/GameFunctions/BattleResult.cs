@@ -25,11 +25,11 @@ namespace MonsterTradingCards.GameFunctions
 
     public class RoundResult
     {
-        public Card Winner { get; }
-        public Card Loser { get; }
+        public Card? Winner { get; }
+        public Card? Loser { get; }
         public Winner RoundWinner { get; }
 
-        public RoundResult(Card winner, Card loser, Winner roundWinner)
+        public RoundResult(Card? winner, Card? loser, Winner roundWinner)
         {
             Winner = winner;
             Loser = loser;

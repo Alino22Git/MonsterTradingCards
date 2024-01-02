@@ -7,17 +7,17 @@ namespace MonsterTradingCards.Repository;
 
 public class DbRepo
 {
-    private readonly string ConnectionString;
+    private readonly string _connectionString;
 
     public DbRepo(string connectionString)
     {
-        ConnectionString = connectionString;
+        _connectionString = connectionString;
     }
 
     public IEnumerable<User> GetAllUsers()
     {
         var data = new List<User>();
-        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionString))
         {
             using (var command = connection.CreateCommand())
             {
@@ -31,9 +31,9 @@ public class DbRepo
                     {
                         var userId = reader.GetInt32(0);
                         var username = reader.GetString(1);
-                        string name = null;
-                        string bio = null;
-                        string image = null;
+                        string name = null!;
+                        string bio = null!;
+                        string image = null!;
                         var password = reader.GetString(5);
                         if (!reader.IsDBNull(2)) name = reader.GetString(2);
                         if (!reader.IsDBNull(3)) bio = reader.GetString(3);
@@ -52,9 +52,16 @@ public class DbRepo
     }
 
 
-    public void UpdateUser(User u)
+    public void UpdateUser(User? u)
     {
-        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        if (u == null)
+        {
+            throw new NullReferenceException("Error in UpdateUser");
+        }
+
+        
+
+        using (IDbConnection connection = new NpgsqlConnection(_connectionString))
         {
             using (var command = connection.CreateCommand())
             {
@@ -126,7 +133,7 @@ public class DbRepo
 
     public void DeleteUser(User u)
     {
-        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionString))
         {
             using (var command = connection.CreateCommand())
             {
@@ -168,7 +175,7 @@ public class DbRepo
             }
 
             //Changes location to db
-            connection.ChangeDatabase(db);
+            connection.ChangeDatabase(db ?? throw new InvalidOperationException());
 
             using (var cmd = connection.CreateCommand())
             {
@@ -219,7 +226,7 @@ public class DbRepo
 
     public void AddUserCredentials(User u)
     {
-        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionString))
         {
             using (var command = connection.CreateCommand())
             {
@@ -262,7 +269,7 @@ public class DbRepo
     public IEnumerable<Card>? GetCardPackage()
     {
         var data = new List<Card>();
-        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionString))
         {
             using (var command = connection.CreateCommand())
             {
@@ -295,7 +302,7 @@ public class DbRepo
     }
     public void AddCard(Card c)
     {
-        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionString))
         {
             using (var command = connection.CreateCommand())
             {
@@ -329,7 +336,7 @@ public class DbRepo
     public IEnumerable<Card> GetAllCards()
     {
         var data = new List<Card>();
-        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionString))
         {
             using (var command = connection.CreateCommand())
             {
@@ -357,7 +364,7 @@ public class DbRepo
 
     public void UpdateCard(Card c)
     {
-        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionString))
         {
             using (var command = connection.CreateCommand())
             {
@@ -394,7 +401,7 @@ public class DbRepo
 
     public void DeleteCard(Card c)
     {
-        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionString))
         {
             using (var command = connection.CreateCommand())
             {
@@ -411,11 +418,15 @@ public class DbRepo
         }
     }
 
-    public void UserAquireCards(User user)
+    public void UserAquireCards(User? user)
     {
-        List<Card> cards = (List<Card>) GetCardPackage();
+        if (user == null)
+        {
+            throw new NullReferenceException("Error in UserAquireCards");
+        }
+        List<Card> cards = (List<Card>) GetCardPackage()!;
         foreach(var card in cards) {
-            using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+            using (IDbConnection connection = new NpgsqlConnection(_connectionString))
             {
                 using (var command = connection.CreateCommand())
                 {
@@ -439,36 +450,39 @@ public class DbRepo
         }
     }
 
-    public void UpdateUserCardDependency(int uid, String cid)
+    public void UpdateUserCardDependency(int uid, string? cid)
     {
-        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionString))
         {
             using (var command = connection.CreateCommand())
             {
                 connection.Open();
                 command.CommandText = @"UPDATE UserCard
-                                            SET cardId = @cid
-                                            WHERE userId = @uid";
-
-                var cidParameter = command.CreateParameter();
-                cidParameter.ParameterName = "cid";
-                cidParameter.Value = cid;
-                command.Parameters.Add(cidParameter);
+                                            SET userId = @uid
+                                            WHERE cardId = @cid";
 
                 var uidParameter = command.CreateParameter();
                 uidParameter.ParameterName = "uid";
                 uidParameter.Value = uid;
                 command.Parameters.Add(uidParameter);
 
+                var cidParameter = command.CreateParameter();
+                cidParameter.ParameterName = "cid";
+                cidParameter.Value = cid;
+                command.Parameters.Add(cidParameter);
                 command.ExecuteNonQuery();
             }
         }
     }
 
-    public IEnumerable<Card> UserGetCards(User user)
+    public IEnumerable<Card>? UserGetCards(User? user)
     {
+        if (user == null)
+        {
+            throw new ArgumentNullException("Error in UserGetCards");
+        }
         var data = new List<Card>();
-        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionString))
         {
             using (var command = connection.CreateCommand())
             {
@@ -501,10 +515,14 @@ public class DbRepo
         }
         return data;
     }
-    public IEnumerable<Card> UserGetDeck(User user)
+    public IEnumerable<Card>? UserGetDeck(User? user)
     {
+        if (user == null)
+        {
+            throw new ArgumentNullException("Error in UserGetDeck");
+        }
         var data = new List<Card>();
-        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionString))
         {
             using (var command = connection.CreateCommand())
             {
@@ -539,7 +557,7 @@ public class DbRepo
     }
     public void AddTrade(Trade t)
     {
-        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionString))
         {
             using (var command = connection.CreateCommand())
             {
@@ -580,7 +598,7 @@ public class DbRepo
 
     public void DeleteTrade(Trade t)
     {
-        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionString))
         {
             using (var command = connection.CreateCommand())
             {
@@ -596,10 +614,10 @@ public class DbRepo
             }
         }
     }
-    public IEnumerable<Trade> GetAllTrades()
+    public IEnumerable<Trade>? GetAllTrades()
     {
         var data = new List<Trade>();
-        using (IDbConnection connection = new NpgsqlConnection(ConnectionString))
+        using (IDbConnection connection = new NpgsqlConnection(_connectionString))
         {
             using (var command = connection.CreateCommand())
             {
