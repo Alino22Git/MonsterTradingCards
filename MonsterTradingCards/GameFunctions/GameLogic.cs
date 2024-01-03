@@ -135,11 +135,11 @@ namespace MonsterTradingCards.GameFunctions
 
         private static double SpecialCalculation(Card? card, Card? opponentCard)
         {
-            string spellType = GetElementFromCardName(card?.Name);
+            string cardType = GetTypeFromCardName(card?.Name);
             string opponentType = GetTypeFromCardName(opponentCard?.Name);
             string opponentElement = GetElementFromCardName(opponentCard?.Name);
 
-            switch (spellType)
+            switch (cardType)
             {
                 case "Goblin":
                     if (opponentType == "Dragon")
@@ -169,9 +169,28 @@ namespace MonsterTradingCards.GameFunctions
                     {
                         return card!.Damage;
                     }
+                case "Spell":
+                    if (opponentType == "Kraken")
+                    {
+                        return 0;
+                    }
+                    else
+                    {
+                        return card!.Damage;
+                    }
+                case "Dragon":
+                    if (opponentType == "Elv" && opponentElement=="Fire")
+                    {
+                        return 0;
+                    }
+                    else
+                    {
+                        return card!.Damage;
+                    }
                 default:
                     return card!.Damage;
             }
+
         }
 
         private static string GetElementFromCardName(string? cardName)
@@ -186,7 +205,7 @@ namespace MonsterTradingCards.GameFunctions
                 }
             }
 
-            return "Unknown";
+            return "Regular";
         }
 
         public static string GetTypeFromCardName(string? cardName)

@@ -51,7 +51,7 @@
 
         public override string ToString()
         {
-            return "Card: Id: " + Id + " Name: " + Name + " Damage: " + Damage;
+            return "Card: Id: " + Id + " Name: " + Name + " Damage: " + Damage + " Deck: "+ Deck;
         }
     }
 }
