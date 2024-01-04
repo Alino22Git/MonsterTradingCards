@@ -361,7 +361,6 @@ public class DbRepo
         return data;
     }
 
-
     public void UpdateCard(Card c)
     {
         using (IDbConnection connection = new NpgsqlConnection(_connectionString))
@@ -422,7 +421,7 @@ public class DbRepo
     {
         if (user == null)
         {
-            throw new NullReferenceException("Error in UserAquireCards");
+            throw new ArgumentNullException("Error in UserAquireCards");
         }
         List<Card> cards = (List<Card>) GetCardPackage()!;
         foreach(var card in cards) {
