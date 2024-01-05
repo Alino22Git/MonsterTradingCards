@@ -9,13 +9,20 @@ namespace MonsterTradingCards.GameFunctions
 {
     public class GameLogic
     {
+        /// <summary>
+        /// Initiates a battle between two users and returns the result as a string.
+        /// </summary>
+        /// <param name="user1">The first user participating in the battle.</param>
+        /// <param name="user2">The second user participating in the battle.</param>
+        /// <param name="dbRepo">The database repository for accessing data during the battle.</param>
+        /// <returns>A string describing the outcome of the battle.</returns>
         public static string? StartBattle(User? user1, User? user2, DbRepo dbRepo)
         {
             if (dbRepo == null)
             {
                 throw new ArgumentNullException("Error in StartBattle");
             }
-            List<Card?>? deck1 = (List<Card?>)dbRepo.UserGetDeck(user1)!;
+            List<Card?>? deck1 = (List<Card?>)dbRepo.UserGetDeck(user1)!; 
             List<Card?>? deck2 = (List<Card?>)dbRepo.UserGetDeck(user2)!;
             BattleResult battleResult = new BattleResult();
             Log fightLog = new Log(user1,user2);
@@ -40,6 +47,11 @@ namespace MonsterTradingCards.GameFunctions
             return fightLog.GetFightLog();
         }
 
+        /// <summary>
+        /// Retrieves a random card from the given deck.
+        /// </summary>
+        /// <param name="deck">The list of cards from which to retrieve a random card.</param>
+        /// <returns>A randomly selected card from the deck.</returns>
         private static Card? GetRandomCard(List<Card?>? deck)
         {
             if (deck!.Count == 0)
@@ -50,9 +62,15 @@ namespace MonsterTradingCards.GameFunctions
             return deck[randomIndex];
         }
 
+        /// <summary>
+        /// Simulates a round of battle between two cards and returns the result.
+        /// </summary>
+        /// <param name="cardA">The card of the first participant in the battle.</param>
+        /// <param name="cardB">The card of the second participant in the battle.</param>
+        /// <returns>The result of the battle round.</returns>
         private static RoundResult FightRound(Card? cardA, Card? cardB)
         {
-            cardA!.Damage = cardA.IsSpell() ? CalculateSpellDamage(cardA, cardB) : cardA.Damage;
+            cardA!.Damage = cardA.IsSpell() ? CalculateSpellDamage(cardA, cardB) : cardA.Damage; //Is the card a spell -> calculate damage against other card
             cardB!.Damage = cardB.IsSpell() ? CalculateSpellDamage(cardB, cardA) : cardB.Damage;
 
             
@@ -61,7 +79,14 @@ namespace MonsterTradingCards.GameFunctions
             return DetermineWinner(cardA, cardB, damageA, damageB);
         }
 
-
+        /// <summary>
+        /// Determines the winner of a battle round based on the cards and damage dealt.
+        /// </summary>
+        /// <param name="cardA">The card of the first participant in the battle.</param>
+        /// <param name="cardB">The card of the second participant in the battle.</param>
+        /// <param name="damageA">The damage dealt by the first participant's card.</param>
+        /// <param name="damageB">The damage dealt by the second participant's card.</param>
+        /// <returns>The result of the battle round indicating the winner.</returns>
         private static RoundResult DetermineWinner(Card? cardA, Card? cardB, double damageA, double damageB)
         {
             RoundResult roundResult;
@@ -81,6 +106,12 @@ namespace MonsterTradingCards.GameFunctions
             return roundResult;
         }
 
+        /// <summary>
+        /// Calculates the damage dealt by a spell card to an opponent card.
+        /// </summary>
+        /// <param name="spellCard">The spell card used to attack.</param>
+        /// <param name="opponentCard">The opponent's card receiving the attack.</param>
+        /// <returns>The calculated damage inflicted by the spell card.</returns>
         private static double CalculateSpellDamage(Card? spellCard, Card? opponentCard)
         {
             string spellElement = GetElementFromCardName(spellCard?.Name);
@@ -133,6 +164,12 @@ namespace MonsterTradingCards.GameFunctions
             }
         }
 
+        /// <summary>
+        /// Performs special calculations for the battle based on the characteristics of the cards.
+        /// </summary>
+        /// <param name="card">The card of the participant performing the special calculation.</param>
+        /// <param name="opponentCard">The opponent's card involved in the special calculation.</param>
+        /// <returns>The result of the special calculation.</returns>
         private static double SpecialCalculation(Card? card, Card? opponentCard)
         {
             string cardType = GetTypeFromCardName(card?.Name);
@@ -193,6 +230,11 @@ namespace MonsterTradingCards.GameFunctions
 
         }
 
+        /// <summary>
+        /// Retrieves the element type from the given card name.
+        /// </summary>
+        /// <param name="cardName">The name of the card from which to extract the element.</param>
+        /// <returns>The element type extracted from the card name.</returns>
         private static string GetElementFromCardName(string? cardName)
         {
             string[] elements = { "Water", "Fire", "Regular" };
@@ -208,6 +250,11 @@ namespace MonsterTradingCards.GameFunctions
             return "Regular";
         }
 
+        /// <summary>
+        /// Retrieves the card type from the given card name.
+        /// </summary>
+        /// <param name="cardName">The name of the card from which to extract the type.</param>
+        /// <returns>The card type extracted from the card name.</returns>
         public static string GetTypeFromCardName(string? cardName)
         {
             string[] types = { "Knight", "Goblin", "Dragon", "Ork", "Wizard", "Elv", "Spell", "Kraken" };
@@ -223,6 +270,12 @@ namespace MonsterTradingCards.GameFunctions
             return "Unknown";
         }
 
+        /// <summary>
+        /// Updates the decks of both players based on the result of a battle round.
+        /// </summary>
+        /// <param name="deckA">The deck of the first player.</param>
+        /// <param name="deckB">The deck of the second player.</param>
+        /// <param name="roundResult">The result of the battle round affecting the decks.</param>
         private static void UpdateDecks(List<Card?>? deckA, List<Card?>? deckB, RoundResult roundResult)
         {
             if (roundResult.RoundWinner == Winner.PlayerA)
@@ -237,8 +290,15 @@ namespace MonsterTradingCards.GameFunctions
             }
         }
 
-        private static void UpdatePlayerStats(User? player1,User? player2, BattleResult battleResult,
-            DbRepo dbRepo, Log log)
+        /// <summary>
+        /// Updates the statistics of both players based on the overall battle result.
+        /// </summary>
+        /// <param name="player1">The first player participating in the battle.</param>
+        /// <param name="player2">The second player participating in the battle.</param>
+        /// <param name="battleResult">The overall result of the battle.</param>
+        /// <param name="dbRepo">The database repository for updating player statistics.</param>
+        /// <param name="log">The log object for recording battle events.</param>
+        private static void UpdatePlayerStats(User? player1,User? player2, BattleResult battleResult, DbRepo dbRepo, Log log)
         {
             int winsA = 0, winsB = 0, draws = 0;
             foreach (var round in battleResult.RoundResults)

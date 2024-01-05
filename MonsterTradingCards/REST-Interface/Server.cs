@@ -15,20 +15,26 @@ public class Server
     private static readonly object lockObject = new();
     private readonly string connectionString;
     private readonly TcpListener listener;
-    private readonly object lockO = new(); // Hier wird ein Objekt für die Synchronisation erstellt
     private readonly Queue<string?> playerQueue = new();
     private readonly int port = 10001;
     private readonly List<string?> tokenlist = new();
     private string? token;
     private string? lastBattleLog;
 
+    /// <summary>
+    /// Initializes a new instance of the Server class with the specified connection string.
+    /// </summary>
+    /// <param name="con">The connection string for the server.</param>
     public Server(string con)
     {
         connectionString = con;
         listener = new TcpListener(IPAddress.Loopback, port);
-        tokenlist.Add("admin-mtcgToken");
+        tokenlist.Add("admin-mtcgToken"); //Admins have special rights for some functionalities
     }
 
+    /// <summary>
+    /// Runs the server to handle incoming requests.
+    /// </summary>
     public void RunServer()
     {
         listener.Start();
@@ -37,9 +43,9 @@ public class Server
         while (true)
             try
             {
-                var client = listener.AcceptTcpClient();
+                var client = listener.AcceptTcpClient(); //Starts the listening-state for the Server
 
-                ThreadPool.QueueUserWorkItem(HandleRequest, client);
+                ThreadPool.QueueUserWorkItem(HandleRequest, client); //Every Request will be executed in a seperated thread
             }
             catch (Exception ex)
             {
@@ -47,6 +53,10 @@ public class Server
             }
     }
 
+    /// <summary>
+    /// Handles a request from a client.
+    /// </summary>
+    /// <param name="oclient">The client object representing the incoming request.</param>
     private void HandleRequest(object? oclient)
     {
       
@@ -55,7 +65,7 @@ public class Server
             var client = (TcpClient?)oclient;
             using (var stream = client!.GetStream())
             using (var reader = new StreamReader(stream))
-            using (var writer = new StreamWriter(stream) { AutoFlush = true })
+            using (var writer = new StreamWriter(stream) { AutoFlush = true })//Using prevents from errors -> closes Stream at the end
             {
                 var requestLine = reader.ReadLine();
                 if (!string.IsNullOrEmpty(requestLine))
@@ -66,10 +76,10 @@ public class Server
                         var httpMethod = parts[0];
                         var path = parts[1];
 
-                        Console.WriteLine($"Received request: {httpMethod} {path}");
+                        Console.WriteLine($"Received request: {httpMethod} {path}"); //Request log in Console
                         var dbRepo = new DbRepo(connectionString);
 
-                        if (httpMethod == "GET")
+                        if (httpMethod == "GET") 
                             GetMethods(path, writer, reader, dbRepo);
                         else if (httpMethod == "POST")
                             PostMethods(path, reader, writer, dbRepo);
@@ -87,6 +97,13 @@ public class Server
         }
     }
 
+    /// <summary>
+    /// Retrieves methods based on the specified path and sends the response to the client.
+    /// </summary>
+    /// <param name="path">The path to determine the methods to retrieve.</param>
+    /// <param name="writer">The StreamWriter for sending the response to the client.</param>
+    /// <param name="reader">The StreamReader for reading client requests.</param>
+    /// <param name="dbRepo">The database repository for method retrieval.</param>
     public void GetMethods(string path, StreamWriter writer, StreamReader reader, DbRepo dbRepo)
     {
         var objectResponse = "";
@@ -96,8 +113,7 @@ public class Server
 
         if (path.StartsWith("/users/"))
         {
-            //Get /{username}
-            var username = path.Substring("/users/".Length);
+            var username = path.Substring("/users/".Length); //Get /{username}
             var foundUser = users.FirstOrDefault(user => user.Username == username);
 
             if ((token != username + "-mtcgToken" && token != "admin-mtcgToken") || !tokenlist.Contains(token))
@@ -106,7 +122,7 @@ public class Server
             }
             else if (foundUser != null)
             {
-                objectResponse = JsonConvert.SerializeObject(foundUser);
+                objectResponse = JsonConvert.SerializeObject(foundUser); //Serializes (object) User
                 responseType = "Data successfully retrieved";
             }
             else
@@ -119,7 +135,7 @@ public class Server
             User? foundUser = null;
             if (token != null)
             {
-                var name = token.Split('-');
+                var name = token.Split('-'); //TestUser-mtcgToken => TestUser
                 foundUser = users.FirstOrDefault(user => user.Username == name[0]);
             }
 
@@ -133,7 +149,7 @@ public class Server
                 if (userCards != null)
                 {
                     responseType = "The user has cards, the response contains these";
-                    objectResponse = JsonConvert.SerializeObject(userCards);
+                    objectResponse = JsonConvert.SerializeObject(userCards); //Serilializes (array of objects) Card
                 }
                 else
                 {
@@ -160,7 +176,7 @@ public class Server
                 if (userDeck != null)
                 {
                     responseType = "The deck has cards, the response contains these";
-                    objectResponse = JsonConvert.SerializeObject(userDeck);
+                    objectResponse = JsonConvert.SerializeObject(userDeck); //Serializes (arry of objects) Card
                 }
                 else
                 {
@@ -183,15 +199,15 @@ public class Server
             }
             else
             {
-                var amountofCards = (dbRepo.UserGetCards(foundUser) ?? throw new InvalidOperationException()).Count();
-                var wins = foundUser!.Battles - (foundUser.Battles - (foundUser.Elo - 100) / 3) / 2;
+                var amountofCards = (dbRepo.UserGetCards(foundUser) ?? throw new InvalidOperationException()).Count(); //?? controlls return of .UserGetCards (if null => throws exception)
+                var wins = foundUser!.Battles - (foundUser.Battles - (foundUser.Elo - 100) / 3) / 2; //Algorithm to calculate wins out of Elo and Battles
                 var losses = foundUser.Battles - wins;
                 objectResponse = JsonConvert.SerializeObject("Stats from User: " + foundUser.Username + "" +
                                                              " Battles played: " + foundUser.Battles + "" +
                                                              " Wins: " + wins + "" +
                                                              " Losses: " + losses + "" +
                                                              " Current Elo: " + foundUser.Elo + "" +
-                                                             " Current amount of Cards: " + amountofCards);
+                                                             " Current amount of Cards: " + amountofCards); //Serializes a custom made string 
                 responseType = "The stats could be retrieved successfully.";
             }
         }
@@ -233,7 +249,7 @@ public class Server
                 if (tradings != null)
                 {
                     responseType = "There are trading deals available, the response contains these";
-                    objectResponse = JsonConvert.SerializeObject(tradings);
+                    objectResponse = JsonConvert.SerializeObject(tradings); //Serializes (array of objects) Traiding
                 }
                 else
                 {
@@ -245,6 +261,13 @@ public class Server
         CreateAndSendResponse(responseType, writer, objectResponse);
     }
 
+    /// <summary>
+    /// Processes and handles POST requests based on the specified path.
+    /// </summary>
+    /// <param name="path">The path to determine the action for the POST request.</param>
+    /// <param name="reader">The StreamReader for reading client requests.</param>
+    /// <param name="writer">The StreamWriter for sending the response to the client.</param>
+    /// <param name="dbRepo">The database repository for handling POST requests.</param>
     public void PostMethods(string path, StreamReader reader, StreamWriter writer, DbRepo dbRepo)
     {
         var objectResponse = "";
@@ -257,7 +280,7 @@ public class Server
 
         if (path == "/users")
         {
-            var postUser = JsonConvert.DeserializeObject<User>(requestBody);
+            var postUser = JsonConvert.DeserializeObject<User>(requestBody); //Deserializes JSON into (object) User
             //using (var requestBodyReader = new StreamReader(reader.BaseStream)) {
             if (postUser == null)
             {
@@ -281,7 +304,7 @@ public class Server
         }
         else if (path == "/sessions")
         {
-            var postUser = JsonConvert.DeserializeObject<User>(requestBody);
+            var postUser = JsonConvert.DeserializeObject<User>(requestBody); 
             if (postUser == null)
             {
                 responseType = "Invalid JSON data";
@@ -306,7 +329,7 @@ public class Server
         else if (path == "/packages")
         {
             var package = new HashSet<Card>();
-            var postCards = JsonConvert.DeserializeObject<List<Card>>(requestBody);
+            var postCards = JsonConvert.DeserializeObject<List<Card>>(requestBody); //Deserializes JSON into (List of object) Card
             if (postCards == null)
             {
                 responseType = "Invalid JSON data";
@@ -363,7 +386,7 @@ public class Server
             }
             else
             {
-                objectResponse = JsonConvert.SerializeObject((List<Card>)dbRepo.GetCardPackage()!);
+                objectResponse = JsonConvert.SerializeObject((List<Card>)dbRepo.GetCardPackage()!); //Serializes (List of objects) Card into JSON
                 dbRepo.UserAquireCards(foundUser);
                 responseType = "A package has been successfully bought";
                 foundUser.Money -= 5;
@@ -406,7 +429,6 @@ public class Server
                         }
                     }
                 }
-
                 Monitor.PulseAll(lockObject);
             }
 
@@ -445,10 +467,10 @@ public class Server
                 if (userCards != null)
                     foreach (Card c in userCards)
                     {
-                        if (c.Id == postTrade.CardToTrade)
+                        if (c.Id == postTrade.CardToTrade) //Checks if the card is owned by player
                         {
                             isOwned = true;
-                            if (c.Deck == 1)
+                            if (c.Deck == 1) //Checks if the card is already in a deck
                             {
                                 isNotInDeck = false;
                             }
@@ -496,15 +518,15 @@ public class Server
                 CreateAndSendResponse(responseType, writer, objectResponse);
                 return;
             }
-            var trade = trades.FirstOrDefault(trade => trade.Id == tradingId);
-            var requestingUser = users.FirstOrDefault(user => user.UserId == trade?.UserId);
-            var offeredCardId = JsonConvert.DeserializeObject<Card>(requestBody);
-            var offeredCard = cards.FirstOrDefault(cards => cards.Id == offeredCardId?.Id);
-            var name = token?.Split('-');
-            var offeringUser = users.FirstOrDefault(user => user.Username == name?[0]);
-            var allofferingUserCards = dbRepo.UserGetCards(offeringUser);
-            var offeringCardElement = GameLogic.GetTypeFromCardName(offeredCard?.Name);
-            var requestCard = cards.FirstOrDefault(cards => cards.Id == trade?.Id);
+            var trade = trades.FirstOrDefault(trade => trade.Id == tradingId); //Get Trade
+            var requestingUser = users.FirstOrDefault(user => user.UserId == trade?.UserId); //Get requesting user out of trade-id
+            var offeredCardId = JsonConvert.DeserializeObject<Card>(requestBody); //Get offered card-id by RequestBody
+            var offeredCard = cards.FirstOrDefault(cards => cards.Id == offeredCardId?.Id); //Get offered card by card-id (RB)
+            var name = token?.Split('-'); //Get name of the user of this request
+            var offeringUser = users.FirstOrDefault(user => user.Username == name?[0]); //Get offering user
+            var allofferingUserCards = dbRepo.UserGetCards(offeringUser); //Get all cards from offering user
+            var offeringCardElement = GameLogic.GetTypeFromCardName(offeredCard?.Name); //Get element of offering card
+            var requestCard = cards.FirstOrDefault(cards => cards.Id == trade?.Id); //Get requested card
 
 
             if (trade == null)
@@ -557,6 +579,13 @@ public class Server
         CreateAndSendResponse(responseType, writer, objectResponse);
     }
 
+    /// <summary>
+    /// Updates resources based on the specified path and client request in a PUT request.
+    /// </summary>
+    /// <param name="path">The path to determine the resource to update.</param>
+    /// <param name="reader">The StreamReader for reading client requests.</param>
+    /// <param name="writer">The StreamWriter for sending the response to the client.</param>
+    /// <param name="dbRepo">The database repository for handling PUT requests.</param>
     public void PutMethods(string path, StreamReader reader, StreamWriter writer, DbRepo dbRepo)
     {
         var objectResponse = "";
@@ -582,7 +611,7 @@ public class Server
                 }
                 else if (foundUser != null)
                 {
-                    foundUser.Bio = postUser.Bio;
+                    foundUser.Bio = postUser.Bio; //Changes information of user
                     foundUser.Name = postUser.Name;
                     foundUser.Image = postUser.Image;
                     dbRepo.UpdateUser(foundUser);
@@ -624,20 +653,17 @@ public class Server
 
                 for (var i = 0; i < userCards.Count; i++)
                 {
-
                     for (var x = 0; x < postCards.Count;x++)
                     {
-                        // Console.Write( "Usercard: " + userCards[i].Id+ " = Postcard: " + postCards[x].Id + "\n");
                         var id = userCards[i].Id;
-                        if (id != null && id.Equals(postCards[x].Id))
+                        if (id != null && id.Equals(postCards[x].Id)) //Checks if the all cards are available for the user
                         {
                             found++;
-                           // Console.WriteLine("RICHTIG\n");
                             break;
                         }
                     }
 
-                    if (found == 4)
+                    if (found == 4)  //If 4 Cards are found exit the loop
                         break;
                 }
 
@@ -649,7 +675,7 @@ public class Server
                         var card = userCards.FirstOrDefault(card => card.Id == c.Id);
                         if (card != null)
                         {
-                            card.Deck = 1;
+                            card.Deck = 1; //Marks every selected card with 1 (Deck Columns)
                             dbRepo.UpdateCard(card);
                         }
                     }
@@ -667,6 +693,13 @@ public class Server
         CreateAndSendResponse(responseType, writer, objectResponse);
     }
 
+    /// <summary>
+    /// Deletes resources based on the specified path in a DELETE request.
+    /// </summary>
+    /// <param name="path">The path to determine the resource to delete.</param>
+    /// <param name="reader">The StreamReader for reading client requests.</param>
+    /// <param name="writer">The StreamWriter for sending the response to the client.</param>
+    /// <param name="dbRepo">The database repository for handling DELETE requests.</param>
     public void DeleteMethods(string path,StreamReader reader, StreamWriter writer, DbRepo dbRepo)
     {
         var objectResponse = "";
@@ -674,6 +707,7 @@ public class Server
         var trades = (List<Trade>)dbRepo.GetAllTrades()!;
         var users = (List<User>)dbRepo.GetAllUsers();
         ReadToEnd(ReadLength(reader), reader);
+
         if (path.StartsWith("/tradings/"))
         {
             if (trades == null)
@@ -711,6 +745,12 @@ public class Server
         CreateAndSendResponse(responseType, writer, objectResponse);
     }
 
+    /// <summary>
+    /// Creates and sends a response to the client using the provided response string and object response.
+    /// </summary>
+    /// <param name="response">The response string to send to the client.</param>
+    /// <param name="writer">The StreamWriter for sending the response to the client.</param>
+    /// <param name="objectResponse">The object response to include in the response.</param>
     private void CreateAndSendResponse(string? response, StreamWriter writer, string objectResponse)
     {
         try
@@ -789,11 +829,11 @@ public class Server
                 writer.WriteLine("Content-Type: text/plain");
             }
 
-            writer.WriteLine();
-            if (response != "The request was fine, but the user doesn't have any cards"&& response != "The request was fine, but there are no trading deals available")
+            writer.WriteLine(); //Empty Line is necessary for HTTP-Format
+            if (response != "The request was fine, but the user doesn't have any cards"&& response != "The request was fine, but there are no trading deals available") //If the HTTP-Code is 204 No Content -> No Body
             {
-                writer.WriteLine(response);
-                writer.WriteLine(objectResponse);
+                writer.WriteLine(response); //Sends respond to client
+                writer.WriteLine(objectResponse); //Sends object to client
             }
 
             token = null;
@@ -804,6 +844,12 @@ public class Server
         }
     }
 
+    /// <summary>
+    /// Reads and returns the specified length of characters from the StreamReader.
+    /// </summary>
+    /// <param name="len">The number of characters to read.</param>
+    /// <param name="reader">The StreamReader for reading characters.</param>
+    /// <returns>The read string of the specified length.</returns>
     private string ReadToEnd(int len, StreamReader reader)
     {
         var data = new StringBuilder(200);
@@ -811,7 +857,7 @@ public class Server
         {
             var chars = new char[1024];
             var bytesReadTotal = 0;
-            while (bytesReadTotal < len)
+            while (bytesReadTotal < len) //Reads until end of request
             {
                 var bytesRead = reader.Read(chars, 0, chars.Length);
                 bytesReadTotal += bytesRead;
@@ -826,26 +872,29 @@ public class Server
         return data.ToString();
     }
 
+    /// <summary>
+    /// Reads and returns the length of the incoming data from the StreamReader.
+    /// </summary>
+    /// <param name="reader">The StreamReader for reading data length.</param>
+    /// <returns>The length of the incoming data.</returns>
     private int ReadLength(StreamReader reader)
     {
         string? line;
-        var content_length = 0; // we need the content_length later, to be able to read the HTTP-content
+        var content_length = 0; //we need the content_length later, to be able to read the HTTP-content
         while ((line = reader.ReadLine()) != null)
         {
             if (line.StartsWith("Authorization:"))
             {
                 var authorizationHeader = line;
-                // Extract the Bearer Token from the Authorization header
-                var match = Regex.Match(authorizationHeader, "Bearer\\s+(\\S+)");
+                var match = Regex.Match(authorizationHeader, "Bearer\\s+(\\S+)"); //Extract the Bearer Token from the Authorization header
                 if (match.Success)
-                    token = match.Groups[1].Value;
+                    token = match.Groups[1].Value; //Saves token for later use (routes)
             }
 
             Console.WriteLine(line);
             if (line == "") break; // empty line indicates the end of the HTTP-headers
 
-            // Parse the header
-            var parts = line.Split(':');
+            var parts = line.Split(':'); // Parse the header
             if (parts.Length == 2 && parts[0] == "Content-Length") content_length = int.Parse(parts[1].Trim());
         }
 

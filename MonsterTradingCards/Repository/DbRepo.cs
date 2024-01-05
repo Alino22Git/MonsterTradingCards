@@ -51,15 +51,12 @@ public class DbRepo
         return data;
     }
 
-
     public void UpdateUser(User? u)
     {
         if (u == null)
         {
             throw new NullReferenceException("Error in UpdateUser");
         }
-
-        
 
         using (IDbConnection connection = new NpgsqlConnection(_connectionString))
         {
@@ -514,6 +511,7 @@ public class DbRepo
         }
         return data;
     }
+    
     public IEnumerable<Card>? UserGetDeck(User? user)
     {
         if (user == null)
@@ -554,6 +552,7 @@ public class DbRepo
         }
         return data;
     }
+    
     public void AddTrade(Trade t)
     {
         using (IDbConnection connection = new NpgsqlConnection(_connectionString))
@@ -613,6 +612,7 @@ public class DbRepo
             }
         }
     }
+    
     public IEnumerable<Trade>? GetAllTrades()
     {
         var data = new List<Trade>();

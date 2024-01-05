@@ -1,11 +1,7 @@
 using MonsterTradingCards.BasicClasses;
-using NUnit.Framework;
-using Moq;
-using System.Collections.Generic;
 using MonsterTradingCards.GameFunctions;
 using MonsterTradingCards.Repository;
-using Microsoft.Extensions.Hosting;
-using System.Runtime.Intrinsics.X86;
+
 
 
 namespace UnitTests
@@ -328,19 +324,7 @@ namespace UnitTests
             // Assert
             Assert.That(dbRepo.GetAllTrades()==null);
         }
-        // [Test]
-        public void StartBattle_6()
-        {
-            // Arrange
-            List<User> allUsers = (List<User>)dbRepo.GetAllUsers();
-
-            // Act
-            string? fightLog = GameLogic.StartBattle(allUsers[0], allUsers[1], dbRepo);
-
-            // Assert
-            Assert.That(fightLog, Is.TypeOf<String>());
-            Assert.That(fightLog.StartsWith("Gamelog:"));
-        }
+        
 
         [Test]
         public void GetTypeFromCardName_TypePlusElement()
@@ -379,6 +363,58 @@ namespace UnitTests
 
             // Assert
             Assert.That(element == "Unknown");
+        }
+
+        [Test]
+        public void IsSpell_WithSpellInName_ReturnsTrue()
+        {
+            // Arrange
+            var card = new Card { Name = "FireSpell" }; 
+
+            // Act
+            bool isSpell = card.IsSpell();
+
+            // Assert
+            Assert.IsTrue(isSpell);
+        }
+
+        [Test]
+        public void IsSpell_WithoutSpellInName_ReturnsFalse()
+        {
+            // Arrange
+            var card = new Card { Name = "Goblin" }; 
+
+            // Act
+            bool isSpell = card.IsSpell();
+
+            // Assert
+            Assert.IsFalse(isSpell);
+        }
+
+        [Test]
+        public void IsSpell_WithNullName_ReturnsFalse()
+        {
+            // Arrange
+            var card = new Card { Name = null };
+
+            // Act
+            bool isSpell = card.IsSpell();
+
+            // Assert
+            Assert.IsFalse(isSpell);
+        }
+
+        [Test]
+        public void IsSpell_WithEmptyName_ReturnsFalse()
+        {
+            // Arrange
+            var card = new Card { Name = string.Empty };
+
+            // Act
+            bool isSpell = card.IsSpell();
+
+            // Assert
+            Assert.IsFalse(isSpell);
         }
     }
 }
