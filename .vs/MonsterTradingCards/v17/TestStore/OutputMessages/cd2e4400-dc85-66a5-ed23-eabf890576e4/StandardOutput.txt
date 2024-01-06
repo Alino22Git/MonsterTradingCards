@@ -1,0 +1,393 @@
+Card: Id: 1e Name: Spell Damage: 20 Deck: 0
+Card: Id: 2e Name: WaterElv Damage: 20 Deck: 0
+Card: Id: 1a Name: FireSpell Damage: 20 Deck: 1
+Card: Id: 2a Name: WaterSpell Damage: 20 Deck: 1
+Card: Id: 1b Name: Ork Damage: 20 Deck: 1
+Card: Id: 2b Name: WaterGoblin Damage: 20 Deck: 1
+Card: Id: 1c Name: Dragon Damage: 20 Deck: 1
+Card: Id: 2c Name: FireElv Damage: 20 Deck: 1
+Card: Id: 1d Name: Knight Damage: 20 Deck: 1
+Card: Id: 2d Name: Wizard Damage: 20 Deck: 1
+Card: Id: test1 Name: Spell Damage: 10 Deck: 0
+------------------------------
+Gamelog:
+Fight between: Alino22 & Bernd01
+1. Round
+Ork with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+2. Round
+Knight with 20 damage is fighting against FireElv with 20
+The Round ends with a draw.
+--------------------
+3. Round
+Knight with 20 damage is fighting against WaterSpell with 10
+Alino22 wins the round.
+--------------------
+4. Round
+WaterSpell with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+5. Round
+Ork with 20 damage is fighting against Wizard with 20
+The Round ends with a draw.
+--------------------
+6. Round
+Ork with 20 damage is fighting against FireElv with 20
+The Round ends with a draw.
+--------------------
+7. Round
+Dragon with 20 damage is fighting against Wizard with 20
+The Round ends with a draw.
+--------------------
+8. Round
+Dragon with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+9. Round
+Dragon with 20 damage is fighting against FireElv with 20
+The Round ends with a draw.
+--------------------
+10. Round
+Ork with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+11. Round
+Knight with 20 damage is fighting against Wizard with 20
+The Round ends with a draw.
+--------------------
+12. Round
+Dragon with 20 damage is fighting against Wizard with 20
+The Round ends with a draw.
+--------------------
+13. Round
+WaterSpell with 40 damage is fighting against FireElv with 20
+Alino22 wins the round.
+--------------------
+14. Round
+FireSpell with 40 damage is fighting against Wizard with 20
+Alino22 wins the round.
+--------------------
+15. Round
+Wizard with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+16. Round
+Dragon with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+17. Round
+WaterSpell with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+18. Round
+FireElv with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+19. Round
+Ork with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+20. Round
+Knight with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+21. Round
+Wizard with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+22. Round
+Wizard with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+23. Round
+Knight with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+24. Round
+Dragon with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+25. Round
+Dragon with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+26. Round
+FireSpell with 10 damage is fighting against WaterGoblin with 20
+Bernd01 wins the round.
+--------------------
+27. Round
+FireElv with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+28. Round
+FireElv with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+29. Round
+Ork with 20 damage is fighting against FireSpell with 40
+Bernd01 wins the round.
+--------------------
+30. Round
+WaterSpell with 10 damage is fighting against Ork with 20
+Bernd01 wins the round.
+--------------------
+31. Round
+Dragon with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+32. Round
+FireElv with 20 damage is fighting against WaterSpell with 40
+Bernd01 wins the round.
+--------------------
+33. Round
+Wizard with 20 damage is fighting against FireSpell with 40
+Bernd01 wins the round.
+--------------------
+34. Round
+Dragon with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+35. Round
+Knight with 20 damage is fighting against Ork with 20
+The Round ends with a draw.
+--------------------
+36. Round
+Knight with 20 damage is fighting against Ork with 20
+The Round ends with a draw.
+--------------------
+37. Round
+Dragon with 20 damage is fighting against Wizard with 20
+The Round ends with a draw.
+--------------------
+38. Round
+Knight with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+39. Round
+Knight with 20 damage is fighting against FireSpell with 40
+Bernd01 wins the round.
+--------------------
+40. Round
+Dragon with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+41. Round
+Dragon with 20 damage is fighting against Knight with 20
+The Round ends with a draw.
+--------------------
+42. Round
+Dragon with 20 damage is fighting against Wizard with 20
+The Round ends with a draw.
+--------------------
+43. Round
+Dragon with 20 damage is fighting against Wizard with 20
+The Round ends with a draw.
+--------------------
+44. Round
+Dragon with 20 damage is fighting against FireElv with 20
+The Round ends with a draw.
+--------------------
+45. Round
+Dragon with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+46. Round
+Dragon with 20 damage is fighting against Ork with 20
+The Round ends with a draw.
+--------------------
+47. Round
+Dragon with 20 damage is fighting against Ork with 20
+The Round ends with a draw.
+--------------------
+48. Round
+Dragon with 20 damage is fighting against FireElv with 20
+The Round ends with a draw.
+--------------------
+49. Round
+Dragon with 20 damage is fighting against WaterSpell with 10
+Alino22 wins the round.
+--------------------
+50. Round
+Dragon with 20 damage is fighting against FireElv with 20
+The Round ends with a draw.
+--------------------
+51. Round
+Dragon with 20 damage is fighting against Wizard with 20
+The Round ends with a draw.
+--------------------
+52. Round
+WaterSpell with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+53. Round
+WaterSpell with 40 damage is fighting against FireElv with 20
+Alino22 wins the round.
+--------------------
+54. Round
+WaterSpell with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+55. Round
+Dragon with 20 damage is fighting against Knight with 20
+The Round ends with a draw.
+--------------------
+56. Round
+WaterSpell with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+57. Round
+WaterSpell with 40 damage is fighting against FireSpell with 10
+Alino22 wins the round.
+--------------------
+58. Round
+FireSpell with 40 damage is fighting against Wizard with 20
+Alino22 wins the round.
+--------------------
+59. Round
+Wizard with 20 damage is fighting against Ork with 20
+The Round ends with a draw.
+--------------------
+60. Round
+FireElv with 20 damage is fighting against Ork with 20
+The Round ends with a draw.
+--------------------
+61. Round
+WaterSpell with 10 damage is fighting against Ork with 20
+Bernd01 wins the round.
+--------------------
+62. Round
+FireElv with 20 damage is fighting against Ork with 20
+The Round ends with a draw.
+--------------------
+63. Round
+FireElv with 20 damage is fighting against Ork with 20
+The Round ends with a draw.
+--------------------
+64. Round
+Wizard with 20 damage is fighting against WaterSpell with 10
+Alino22 wins the round.
+--------------------
+65. Round
+FireSpell with 10 damage is fighting against WaterGoblin with 20
+Bernd01 wins the round.
+--------------------
+66. Round
+WaterSpell with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+67. Round
+WaterSpell with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+68. Round
+Wizard with 20 damage is fighting against Ork with 20
+The Round ends with a draw.
+--------------------
+69. Round
+WaterSpell with 10 damage is fighting against Knight with 20
+Bernd01 wins the round.
+--------------------
+70. Round
+Dragon with 20 damage is fighting against WaterSpell with 10
+Alino22 wins the round.
+--------------------
+71. Round
+WaterSpell with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+72. Round
+Wizard with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+73. Round
+Wizard with 20 damage is fighting against Knight with 20
+The Round ends with a draw.
+--------------------
+74. Round
+FireElv with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+75. Round
+FireElv with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+76. Round
+WaterSpell with 10 damage is fighting against Ork with 20
+Bernd01 wins the round.
+--------------------
+77. Round
+Wizard with 20 damage is fighting against FireSpell with 40
+Bernd01 wins the round.
+--------------------
+78. Round
+Dragon with 20 damage is fighting against Knight with 20
+The Round ends with a draw.
+--------------------
+79. Round
+Dragon with 20 damage is fighting against FireSpell with 40
+Bernd01 wins the round.
+--------------------
+80. Round
+FireElv with 20 damage is fighting against Dragon with 20
+The Round ends with a draw.
+--------------------
+81. Round
+FireElv with 20 damage is fighting against Dragon with 20
+The Round ends with a draw.
+--------------------
+82. Round
+FireElv with 20 damage is fighting against Dragon with 20
+The Round ends with a draw.
+--------------------
+83. Round
+FireElv with 20 damage is fighting against Wizard with 20
+The Round ends with a draw.
+--------------------
+84. Round
+FireElv with 20 damage is fighting against Dragon with 20
+The Round ends with a draw.
+--------------------
+85. Round
+FireElv with 20 damage is fighting against Ork with 20
+The Round ends with a draw.
+--------------------
+86. Round
+FireElv with 20 damage is fighting against Dragon with 20
+The Round ends with a draw.
+--------------------
+87. Round
+FireElv with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+88. Round
+FireElv with 20 damage is fighting against Ork with 20
+The Round ends with a draw.
+--------------------
+89. Round
+FireElv with 20 damage is fighting against Wizard with 20
+The Round ends with a draw.
+--------------------
+90. Round
+FireElv with 20 damage is fighting against Knight with 20
+The Round ends with a draw.
+--------------------
+91. Round
+FireElv with 20 damage is fighting against WaterGoblin with 20
+The Round ends with a draw.
+--------------------
+92. Round
+FireElv with 20 damage is fighting against Wizard with 20
+The Round ends with a draw.
+--------------------
+93. Round
+FireElv with 20 damage is fighting against Ork with 20
+The Round ends with a draw.
+--------------------
+94. Round
+FireElv with 20 damage is fighting against WaterSpell with 40
+Bernd01 wins the round.
+--------------------
+The game lasted: 94
+The winner is Bernd01!
+CONGRATULATIONS

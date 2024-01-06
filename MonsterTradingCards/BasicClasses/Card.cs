@@ -9,10 +9,6 @@
 
         public Card()
         {
-            Id = null;
-            Name = null;
-            Damage = -1.0;
-            Deck = 0;
         }
 
         public Card(string? id, string? name, double damage, int deck)

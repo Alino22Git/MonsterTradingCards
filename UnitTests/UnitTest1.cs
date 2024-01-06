@@ -15,8 +15,8 @@ namespace UnitTests
         public void Setup()
         {
             DbRepo.InitDb("Host = localhost; Username = postgres; Password = 1223; Database = MonsterTradingCardGame");
-            User u1 = new User(1, "Alino22", null, null, null, "123", 0, 0, 0);
-            User u2 = new User(2, "Bernd01", null, null, null, "abc", 0, 0, 0);
+            User u1 = new User(1, "Alino22", null, null, null, "123", 0, 0, 0, 0, 0, 0, 0);
+            User u2 = new User(2, "Bernd01", null, null, null, "abc", 0, 0, 0, 0, 0, 0, 0);
             dbRepo.AddUserCredentials(u1);
             dbRepo.AddUserCredentials(u2);
 
@@ -256,7 +256,7 @@ namespace UnitTests
             dbRepo.AddCard(new Card("test3", "WaterDragon", 60, 0));
             dbRepo.AddCard(new Card("test4", "Goblin", 30, 0));
             dbRepo.AddCard(new Card("test5", "Elv", 40, 0));
-            User u = new User(3, "Max Mustermann", null, null, null, "1234", 0, 0, 0);
+            User u = new User(3, "Max Mustermann", null, null, null, "1234", 0, 0, 0, 0, 0, 0, 0);
             dbRepo.AddUserCredentials(u);
             User u3 = dbRepo.GetAllUsers().FirstOrDefault(user => user.UserId == 3) ?? throw new InvalidOperationException();
 

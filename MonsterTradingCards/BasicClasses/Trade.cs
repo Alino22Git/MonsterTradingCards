@@ -11,7 +11,7 @@ namespace MonsterTradingCards.BasicClasses
         public string? Id { get; set; }
         public string? CardToTrade { get; set; }
         public string? Type { get; set; }
-        public int MinimumDamage { get; set; }
+        public double MinimumDamage { get; set; }
         public int UserId { get; set; }
 
 
@@ -20,7 +20,7 @@ namespace MonsterTradingCards.BasicClasses
 
         }
 
-        public Trade(string? id, string? cardToTrade, string? type, int minimumDamage,int userId)
+        public Trade(string? id, string? cardToTrade, string? type, double minimumDamage,int userId)
         {
             Id = id;
             CardToTrade = cardToTrade;

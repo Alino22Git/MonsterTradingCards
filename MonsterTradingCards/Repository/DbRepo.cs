@@ -41,8 +41,12 @@ public class DbRepo
                         var money = reader.GetInt32(6);
                         var elo = reader.GetInt32(7);
                         var battles = reader.GetInt32(8);
+                        var wins = reader.GetInt32(9);
+                        var rounds = reader.GetInt32(10);
+                        var rwon = reader.GetInt32(11);
+                        var rlost = reader.GetInt32(12);
 
-                        data.Add(new User(userId, username, name, bio, image, password, money, elo, battles));
+                        data.Add(new User(userId, username, name, bio, image, password, money, elo, battles,wins, rounds, rwon, rlost));
                     }
                 }
             }
@@ -64,7 +68,7 @@ public class DbRepo
             {
                 connection.Open();
                 command.CommandText = @"UPDATE Player
-                                            SET username = @uname, name=@name, bio=@bio, image=@image, password = @pass, money = @money, elo = @elo, battles = @battles
+                                            SET username = @uname, name=@name, bio=@bio, image=@image, password = @pass, money = @money, elo = @elo, battles = @battles, wins = @wins, roundsplayed = @rp, roundswon = @rwon, roundslost = @rlost
                                             WHERE userId = @id";
 
 
@@ -122,6 +126,26 @@ public class DbRepo
                 battlesParameter.ParameterName = "battles";
                 battlesParameter.Value = u.Battles;
                 command.Parameters.Add(battlesParameter);
+
+                var winsParameter = command.CreateParameter();
+                winsParameter.ParameterName = "wins";
+                winsParameter.Value = u.Wins;
+                command.Parameters.Add(winsParameter);
+
+                var rPlayedParameter = command.CreateParameter();
+                rPlayedParameter.ParameterName = "rp";
+                rPlayedParameter.Value = u.RoundsPlayed;
+                command.Parameters.Add(rPlayedParameter);
+
+                var rwonParameter = command.CreateParameter();
+                rwonParameter.ParameterName = "rwon";
+                rwonParameter.Value = u.RoundsWon;
+                command.Parameters.Add(rwonParameter);
+
+                var rlostParameter = command.CreateParameter();
+                rlostParameter.ParameterName = "rlost";
+                rlostParameter.Value = u.RoundsLost;
+                command.Parameters.Add(rlostParameter);
 
                 command.ExecuteNonQuery();
             }
@@ -186,7 +210,11 @@ public class DbRepo
                             password VARCHAR(255) NOT NULL,
                             money INT,
                             elo INT,
-                            battles INT
+                            battles INT,
+                            wins INT,
+                            roundsplayed INT,
+                            roundswon INT,
+                            roundslost INT
                         )
                     ";
                 cmd.ExecuteNonQuery();
@@ -194,7 +222,7 @@ public class DbRepo
                         CREATE TABLE IF NOT EXISTS Card (
                             cardId VARCHAR(50) PRIMARY KEY, 
                             name VARCHAR(50) NOT NULL,
-                            damage INT,
+                            damage FLOAT,
                             deck INT
                         )
                     ";
@@ -212,7 +240,7 @@ public class DbRepo
                             tradeId VARCHAR(50) PRIMARY KEY, 
                             cardToTrade VARCHAR(50) NOT NULL,
                             type VARCHAR(255) NOT NULL,
-                            minimumDamage INT,
+                            minimumDamage FLOAT,
                             userId INT
                         )
                     ";
@@ -228,8 +256,8 @@ public class DbRepo
             using (var command = connection.CreateCommand())
             {
                 connection.Open();
-                command.CommandText = @"INSERT INTO Player (username, password, money, elo, battles)
-                                    VALUES (@uname, @pass, @money, @elo, @battles)";
+                command.CommandText = @"INSERT INTO Player (username, password, money, elo, battles, wins, roundsplayed, roundswon, roundslost)
+                                    VALUES (@uname, @pass, @money, @elo, @battles, @wins, @rp, @rwon, @rlost)";
 
 
                 //Parameter for username
@@ -258,6 +286,27 @@ public class DbRepo
                 battlesParameter.ParameterName = "battles";
                 battlesParameter.Value = 0;
                 command.Parameters.Add(battlesParameter);
+
+                var winsParameter = command.CreateParameter();
+                winsParameter.ParameterName = "wins";
+                winsParameter.Value = 0;
+                command.Parameters.Add(winsParameter);
+
+                var rPlayedParameter = command.CreateParameter();
+                rPlayedParameter.ParameterName = "rp";
+                rPlayedParameter.Value = 0;
+                command.Parameters.Add(rPlayedParameter);
+
+                var rwonParameter = command.CreateParameter();
+                rwonParameter.ParameterName = "rwon";
+                rwonParameter.Value = 0;
+                command.Parameters.Add(rwonParameter);
+
+                var rlostParameter = command.CreateParameter();
+                rlostParameter.ParameterName = "rlost";
+                rlostParameter.Value = 0;
+                command.Parameters.Add(rlostParameter);
+
                 command.ExecuteNonQuery();
             }
         }
@@ -282,7 +331,7 @@ public class DbRepo
                     {
                         var cardId = reader.GetString(0);
                         var name = reader.GetString(1);
-                        var damage = reader.GetInt32(2);
+                        var damage = reader.GetDouble(2);
                         var deck = reader.GetInt32(3);
 
                         data.Add(new Card(cardId, name, damage, deck));
@@ -347,7 +396,7 @@ public class DbRepo
                     {
                         var cardId = reader.GetString(0);
                         var name = reader.GetString(1);
-                        var damage = reader.GetInt32(2);
+                        var damage = reader.GetDouble(2);
                         var deck = reader.GetInt32(3);
 
                         data.Add(new Card(cardId, name, damage,deck));
@@ -497,7 +546,7 @@ public class DbRepo
                     {
                         var cardId = reader.GetString(0);
                         var name = reader.GetString(1);
-                        var damage = reader.GetInt32(2);
+                        var damage = reader.GetDouble(2);
                         var deck = reader.GetInt32(3);
 
                         data.Add(new Card(cardId, name, damage, deck));
@@ -538,7 +587,7 @@ public class DbRepo
                     {
                         var cardId = reader.GetString(0);
                         var name = reader.GetString(1);
-                        var damage = reader.GetInt32(2);
+                        var damage = reader.GetDouble(2);
                         var deck = reader.GetInt32(3);
 
                         data.Add(new Card(cardId, name, damage, deck));
@@ -631,7 +680,7 @@ public class DbRepo
                         var tradeId = reader.GetString(0);
                         var cardToTrade = reader.GetString(1);
                         var type = reader.GetString(2);
-                        var minimumDamage = reader.GetInt32(3);
+                        var minimumDamage = reader.GetDouble(3);
                         var userId = reader.GetInt32(4);
 
                         data.Add(new Trade(tradeId,cardToTrade,type,minimumDamage,userId));

@@ -28,12 +28,17 @@ namespace MonsterTradingCards.GameFunctions
         public Card? Winner { get; }
         public Card? Loser { get; }
         public Winner RoundWinner { get; }
+        public double WinnerDmg { get; }
+        public double LoserDmg { get; }
 
-        public RoundResult(Card? winner, Card? loser, Winner roundWinner)
+
+        public RoundResult(Card? winner, Card? loser, Winner roundWinner, double wdmg, double ldmg)
         {
             Winner = winner;
             Loser = loser;
             RoundWinner = roundWinner;
+            WinnerDmg = wdmg;
+            LoserDmg = ldmg;
         }
     }
 

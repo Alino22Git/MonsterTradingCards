@@ -70,12 +70,12 @@ namespace MonsterTradingCards.GameFunctions
         /// <returns>The result of the battle round.</returns>
         private static RoundResult FightRound(Card? cardA, Card? cardB)
         {
-            cardA!.Damage = cardA.IsSpell() ? CalculateSpellDamage(cardA, cardB) : cardA.Damage; //Is the card a spell -> calculate damage against other card
-            cardB!.Damage = cardB.IsSpell() ? CalculateSpellDamage(cardB, cardA) : cardB.Damage;
-
-            
             var damageA = SpecialCalculation(cardA, cardB);
-            var damageB = SpecialCalculation(cardB, cardA);
+            var damageB = SpecialCalculation(cardB, cardA); 
+            
+            damageA = cardA != null && cardA.IsSpell() ? CalculateSpellDamage(cardA, cardB) : cardA!.Damage; //Is the card a spell -> calculate damage against other card
+            damageB = cardB != null && cardB.IsSpell() ? CalculateSpellDamage(cardB, cardA) : cardB!.Damage;
+
             return DetermineWinner(cardA, cardB, damageA, damageB);
         }
 
@@ -92,15 +92,15 @@ namespace MonsterTradingCards.GameFunctions
             RoundResult roundResult;
             if (damageA > damageB)
             {
-                roundResult = new RoundResult(cardA, cardB, Winner.PlayerA);
+                roundResult = new RoundResult(cardA, cardB, Winner.PlayerA,damageA,damageB);
             }
             else if (damageB > damageA)
             {
-                roundResult = new RoundResult(cardB, cardA, Winner.PlayerB);
+                roundResult = new RoundResult(cardB, cardA, Winner.PlayerB,damageB,damageA);
             }
             else
             {
-                roundResult = new RoundResult(null, null, Winner.Draw);
+                roundResult = new RoundResult(null, null, Winner.Draw, damageA, damageB);
             }
 
             return roundResult;
@@ -317,11 +317,28 @@ namespace MonsterTradingCards.GameFunctions
                 }
             }
 
-            player1!.Battles = winsA + winsB + draws;
-            player1.Elo = player1.Elo + winsA * 3 - winsB * 5;
-            player2!.Battles = winsA + winsB + draws;
-            player2.Elo = player2.Elo + winsB * 3 - winsA * 5;
-            if (player1.Elo < 0)
+            //Update User Stats
+            player1!.RoundsPlayed += winsA + winsB + draws;
+            player1.Elo += winsA * 3 - winsB * 5;
+            player1.RoundsWon += winsA;
+            player1.Battles++;
+            player1.RoundsLost = winsB;
+
+            player2!.RoundsPlayed += winsA + winsB + draws;
+            player2.Elo +=  winsB * 3 - winsA * 5;
+            player2.RoundsWon += winsB;
+            player2.Battles++;
+            player2.RoundsLost = winsA;
+
+            if (winsA > winsB)
+            {
+                player1.Wins++;
+            }else if (winsA < winsB)
+            {
+                player2.Wins++;
+            }
+
+                if (player1.Elo < 0)
             {
                 player1.Elo = 0;
             }

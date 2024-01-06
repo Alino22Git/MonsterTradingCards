@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Net.Sockets;
-using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Text.RegularExpressions;
 using MonsterTradingCards.BasicClasses;
@@ -200,12 +199,14 @@ public class Server
             else
             {
                 var amountofCards = (dbRepo.UserGetCards(foundUser) ?? throw new InvalidOperationException()).Count(); //?? controlls return of .UserGetCards (if null => throws exception)
-                var wins = foundUser!.Battles - (foundUser.Battles - (foundUser.Elo - 100) / 3) / 2; //Algorithm to calculate wins out of Elo and Battles
-                var losses = foundUser.Battles - wins;
-                objectResponse = JsonConvert.SerializeObject("Stats from User: " + foundUser.Username + "" +
-                                                             " Battles played: " + foundUser.Battles + "" +
-                                                             " Wins: " + wins + "" +
-                                                             " Losses: " + losses + "" +
+                
+                objectResponse = JsonConvert.SerializeObject("Stats from User: " + foundUser?.Username + "" +
+                                                             " Battles played: " + foundUser!.Battles + "" +
+                                                             " Wins: " + foundUser.Wins + "" +
+                                                             " Losses: " + (foundUser.Battles - foundUser.Wins) + "" +
+                                                             " Rounds played: " + foundUser.RoundsPlayed + "" +
+                                                             " Rounds won: " + foundUser.RoundsWon + "" +
+                                                             " Rounds lost " + foundUser.RoundsLost + "" +
                                                              " Current Elo: " + foundUser.Elo + "" +
                                                              " Current amount of Cards: " + amountofCards); //Serializes a custom made string 
                 responseType = "The stats could be retrieved successfully.";
@@ -222,14 +223,12 @@ public class Server
                 var scoreboard = new List<string>();
                 scoreboard.Add("Scoreboard: " +
                                "");
-                foreach (var u in users)
+                foreach (var u in users) //Scoreboard is created by for each loop
                 {
-                    var wins = u.Battles - (u.Battles - (u.Elo - 100) / 3) / 2;
-                    var losses = u.Battles - wins;
                     scoreboard.Add(" Username: " + u.Username + "" +
                                    " Current Elo: " + u.Elo + "" +
-                                   " Wins: " + wins + "" +
-                                   " Losses: " + losses + "" +
+                                   " Wins: " + u.Wins + "" +
+                                   " Losses: " + (u.Battles - u.Wins) + "" +
                                    " Battles: " + u.Battles);
                 }
 
@@ -281,7 +280,6 @@ public class Server
         if (path == "/users")
         {
             var postUser = JsonConvert.DeserializeObject<User>(requestBody); //Deserializes JSON into (object) User
-            //using (var requestBodyReader = new StreamReader(reader.BaseStream)) {
             if (postUser == null)
             {
                 responseType = "Invalid JSON data";
@@ -299,7 +297,6 @@ public class Server
                 {
                     responseType = "User with same username already registered";
                 }
-                // }
             }
         }
         else if (path == "/sessions")
@@ -525,9 +522,7 @@ public class Server
             var name = token?.Split('-'); //Get name of the user of this request
             var offeringUser = users.FirstOrDefault(user => user.Username == name?[0]); //Get offering user
             var allofferingUserCards = dbRepo.UserGetCards(offeringUser); //Get all cards from offering user
-            var offeringCardElement = GameLogic.GetTypeFromCardName(offeredCard?.Name); //Get element of offering card
-            var requestCard = cards.FirstOrDefault(cards => cards.Id == trade?.Id); //Get requested card
-
+            var offeringCardType = GameLogic.GetTypeFromCardName(offeredCard?.Name); //Get element of offering card
 
             if (trade == null)
             {
@@ -560,7 +555,7 @@ public class Server
                             }
                         }
 
-                    if (offeringUser != null && (isOwned == false || isNotInDeck == false || requestingUser?.UserId == offeringUser.UserId||offeredCard?.Damage <trade.MinimumDamage||offeringCardElement!=trade.Type))
+                    if (offeringUser != null && (isOwned == false || isNotInDeck == false || requestingUser?.UserId == offeringUser.UserId||offeredCard?.Damage <trade.MinimumDamage|| offeringCardType != trade.Type))
                     {
                         responseType = "The offered card is not owned by the user, or the requirements are not met (Type, MinimumDamage), or the offered card is locked in the deck, or the user tries to trade with self";
                     }

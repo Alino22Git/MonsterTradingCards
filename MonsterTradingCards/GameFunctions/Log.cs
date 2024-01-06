@@ -19,7 +19,7 @@ namespace MonsterTradingCards.GameFunctions
             user1 = u1;
             user2 = u2;
             FightLog = new List<String>();
-            FightLog.Add("Gamelog:\nFight between: "+user1.Username+" & "+user2.Username);
+            FightLog.Add("Gamelog:\nFight between: "+user1?.Username+" & "+user2?.Username);
         }
 
         public void AddEntry(Card? card1,Card? card2,RoundResult rs,int roundNum)
@@ -27,18 +27,20 @@ namespace MonsterTradingCards.GameFunctions
             var playerName = "none";
             if (rs.RoundWinner == Winner.Draw)
             {
-                FightLog.Add(roundNum + ". Round\n" + card1.Name + " with " + card1.Damage + " damage is fighting against " + card2.Name + " with " + card2.Damage + "\n" + "The Round ends with a draw.\n--------------------");
+                FightLog.Add(roundNum + ". Round\n" + card1?.Name + " with " + rs.WinnerDmg + " damage is fighting against " + card2?.Name + " with " + rs.LoserDmg + "\n" + "The Round ends with a draw.\n--------------------");
                 return;
             }
             else if (rs.RoundWinner == Winner.PlayerA)
             {
-                playerName = user1.Username;
+                playerName = user1?.Username;
+                FightLog.Add(roundNum + ". Round\n" + card1?.Name + " with " + rs.WinnerDmg + " damage is fighting against " + card2?.Name + " with " + rs.LoserDmg + "\n" + playerName + " wins the round.\n--------------------");
             }
             else
             {
-                playerName = user2.Username;
+                playerName = user2?.Username; 
+                FightLog.Add(roundNum + ". Round\n" + card1?.Name + " with " + rs.LoserDmg + " damage is fighting against " + card2?.Name + " with " + rs.WinnerDmg + "\n" + playerName + " wins the round.\n--------------------");
             }
-            FightLog.Add(roundNum+". Round\n"+card1.Name +" with "+card1.Damage + " damage is fighting against "+card2.Name + " with " + card2.Damage+"\n"+ playerName + " wins the round.\n--------------------");
+
         }
 
         public string? GetFightLog()
@@ -53,11 +55,11 @@ namespace MonsterTradingCards.GameFunctions
             var winner = "none";
             if (winsA > winsB)
             {
-                winner = user1.Username;
+                winner = user1?.Username;
             }
             else if(winsA < winsB)
             {
-                winner = user2.Username;
+                winner = user2?.Username;
             }else
             {
                 FightLog.Add("The game lasted: " + (winsA + winsB + draws) + "and ended with a DRAW.");
