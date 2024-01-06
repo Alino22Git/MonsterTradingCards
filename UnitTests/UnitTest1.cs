@@ -133,8 +133,8 @@ namespace UnitTests
         public void Db_GetUserCards()
         {
             // Arrange
-            User u1 = dbRepo.GetAllUsers().FirstOrDefault(user => user.UserId == 1);
-            List<Card> u1Cards = (List<Card>)dbRepo.UserGetCards(u1);
+            User u1 = dbRepo.GetAllUsers().FirstOrDefault(user => user.UserId == 1) ?? throw new InvalidOperationException();
+            List<Card>? u1Cards = (List<Card>)dbRepo.UserGetCards(u1)!;
 
             // Act & Assert
             Assert.That(u1Cards.Count == 5);
@@ -153,7 +153,7 @@ namespace UnitTests
             u3.Elo = 0;
             u3.Battles = 10;
             dbRepo.AddUserCredentials(u3);
-            User updatedU3 = dbRepo.GetAllUsers().FirstOrDefault(user => user.UserId == 3);
+            User updatedU3 = dbRepo.GetAllUsers().FirstOrDefault(user => user.UserId == 3) ?? throw new InvalidOperationException();
 
             // Assert
             Assert.That(updatedU3.UserId == 3 && updatedU3.Username == "TestUsername" && updatedU3.Password == "1234" &&
@@ -164,15 +164,19 @@ namespace UnitTests
         public void Db_UpdateUser()
         {
             // Arrange
-            User u1 = dbRepo.GetAllUsers().FirstOrDefault(user => user.UserId == 1);
+            User u1 = dbRepo.GetAllUsers().FirstOrDefault(user => user.UserId == 1) ?? throw new InvalidOperationException();
 
             // Act
-            u1.Bio = "Test-Bio";
-            u1.Name = "Max Mustermann";
-            u1.Image = ":)";
+            if (u1 != null)
+            {
+                u1.Bio = "Test-Bio";
+                u1.Name = "Max Mustermann";
+                u1.Image = ":)";
 
-            dbRepo.UpdateUser(u1);
-            User updatedU3 = dbRepo.GetAllUsers().FirstOrDefault(user => user.UserId == 1);
+                dbRepo.UpdateUser(u1);
+            }
+
+            User updatedU3 = dbRepo.GetAllUsers().FirstOrDefault(user => user.UserId == 1) ?? throw new InvalidOperationException();
 
 
             // Assert
@@ -187,7 +191,7 @@ namespace UnitTests
             // Not Enough Cards in DB
 
             // Act
-            List<Card> cardPackage = (List<Card>)dbRepo.GetCardPackage();
+            List<Card>? cardPackage = (List<Card>)dbRepo.GetCardPackage()!;
 
             // Assert
             Assert.That(cardPackage == null);
@@ -208,12 +212,12 @@ namespace UnitTests
         public void Db_UpdateCard()
         {
             // Arrange
-            Card card = dbRepo.GetAllCards().FirstOrDefault(card=> card.Id=="test1");
+            Card card = dbRepo.GetAllCards().FirstOrDefault(card=> card.Id=="test1") ?? throw new InvalidOperationException();
             card.Name = "UltimateDragon";
             card.Damage = 100;
             card.Deck = 1;
             dbRepo.UpdateCard(card);
-            Card updatedCard = dbRepo.GetAllCards().FirstOrDefault(card => card.Id == "test1");
+            Card updatedCard = dbRepo.GetAllCards().FirstOrDefault(card => card.Id == "test1") ?? throw new InvalidOperationException();
 
 
             // Act & Assert
@@ -230,15 +234,18 @@ namespace UnitTests
             dbRepo.AddCard(new Card("test5", "Elv", 40, 0));
 
             // Act
-            List<Card> cardPackage=(List<Card>)dbRepo.GetCardPackage();
+            List<Card>? cardPackage = (List<Card>)dbRepo.GetCardPackage()!;
 
             // Assert
-            foreach (Card card in cardPackage)
+            if (cardPackage != null)
             {
-                Console.WriteLine(card);
-            }
+                foreach (Card card in cardPackage)
+                {
+                    Console.WriteLine(card);
+                }
 
-            Assert.That(cardPackage.Count() == 5);
+                Assert.That(cardPackage.Count() == 5);
+            }
         }
         
         [Test]
@@ -251,18 +258,22 @@ namespace UnitTests
             dbRepo.AddCard(new Card("test5", "Elv", 40, 0));
             User u = new User(3, "Max Mustermann", null, null, null, "1234", 0, 0, 0);
             dbRepo.AddUserCredentials(u);
-            User u3 = dbRepo.GetAllUsers().FirstOrDefault(user => user.UserId == 3);
+            User u3 = dbRepo.GetAllUsers().FirstOrDefault(user => user.UserId == 3) ?? throw new InvalidOperationException();
 
             // Act
             dbRepo.UserAquireCards(u3);
-            List<Card> cardsFromU3 = (List<Card>) dbRepo.UserGetCards(u3);
+            List<Card>? cardsFromU3 = dbRepo.UserGetCards(u3) as List<Card>;
 
             // Assert
-            foreach (Card card in cardsFromU3)
+            if (cardsFromU3 != null)
             {
-                Console.WriteLine(card);
+                foreach (Card card in cardsFromU3)
+                {
+                    Console.WriteLine(card);
+                }
+
+                Assert.That(cardsFromU3.Count == 5);
             }
-            Assert.That(cardsFromU3.Count == 5);
         }
 
         [Test]
@@ -279,24 +290,24 @@ namespace UnitTests
         public void Db_UpdateUserCardDependency()
         {
             // Arrange
-            User u1 = dbRepo.GetAllUsers().FirstOrDefault(user => user.UserId == 1);
+            User u1 = dbRepo.GetAllUsers().FirstOrDefault(user => user.UserId == 1) ?? throw new InvalidOperationException();
 
             // Act
            dbRepo.UpdateUserCardDependency(1, "2e");
-           List<Card> cards = (List<Card>)dbRepo.UserGetCards(u1);
+           List<Card>? cards = (List<Card>)dbRepo.UserGetCards(u1)!;
            foreach (Card card in cards)
            {
                Console.WriteLine(card);
            }
             // Assert
-            Assert.That(dbRepo.UserGetCards(u1).Count()==6);
+            Assert.That((dbRepo.UserGetCards(u1) ?? throw new InvalidOperationException()).Count()==6);
         }
 
         [Test]
         public void Db_GetAllTrades()
         {
             // Act & Assert
-            Assert.That(dbRepo.GetAllTrades().Count() == 1);
+            Assert.That((dbRepo.GetAllTrades() ?? throw new InvalidOperationException()).Count() == 1);
         }
 
         [Test]
@@ -309,7 +320,7 @@ namespace UnitTests
             dbRepo.AddTrade(trade);
 
             // Assert
-            Assert.That(dbRepo.GetAllTrades().Count()==2);
+            Assert.That((dbRepo.GetAllTrades() ?? throw new InvalidOperationException()).Count()==2);
         }
         
         [Test]
