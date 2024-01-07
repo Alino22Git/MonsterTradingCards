@@ -73,8 +73,8 @@ namespace MonsterTradingCards.GameFunctions
             var damageA = SpecialCalculation(cardA, cardB);
             var damageB = SpecialCalculation(cardB, cardA); 
             
-            damageA = cardA != null && cardA.IsSpell() ? CalculateSpellDamage(cardA, cardB) : cardA!.Damage; //Is the card a spell -> calculate damage against other card
-            damageB = cardB != null && cardB.IsSpell() ? CalculateSpellDamage(cardB, cardA) : cardB!.Damage;
+            damageA = cardA != null && cardA.IsSpell() ? CalculateSpellDamage(cardA, cardB, damageA) : damageA; //Is the card a spell -> calculate damage against other card
+            damageB = cardB != null && cardB.IsSpell() ? CalculateSpellDamage(cardB, cardA, damageB) : damageB;
 
             return DetermineWinner(cardA, cardB, damageA, damageB);
         }
@@ -112,7 +112,7 @@ namespace MonsterTradingCards.GameFunctions
         /// <param name="spellCard">The spell card used to attack.</param>
         /// <param name="opponentCard">The opponent's card receiving the attack.</param>
         /// <returns>The calculated damage inflicted by the spell card.</returns>
-        private static double CalculateSpellDamage(Card? spellCard, Card? opponentCard)
+        private static double CalculateSpellDamage(Card? spellCard, Card? opponentCard,double damage)
         {
             string spellElement = GetElementFromCardName(spellCard?.Name);
             string opponentElement = GetElementFromCardName(opponentCard?.Name);
@@ -123,44 +123,44 @@ namespace MonsterTradingCards.GameFunctions
                 case "Water":
                     if (opponentElement == "Fire")
                     {
-                        return spellCard!.Damage * 2;
+                        return damage * 2;
                     }
                     else if (opponentElement == "Regular")
                     {
-                        return spellCard!.Damage * 0.5;
+                        return damage * 0.5;
                     }
                     else
                     {
-                        return spellCard!.Damage;
+                        return damage;
                     }
                 case "Fire":
                     if (opponentElement == "Regular")
                     {
-                        return spellCard!.Damage * 2;
+                        return damage * 2;
                     }
                     else if (opponentElement == "Water")
                     {
-                        return spellCard!.Damage * 0.5;
+                        return damage * 0.5;
                     }
                     else
                     {
-                        return spellCard!.Damage;
+                        return damage;
                     }
                 case "Regular":
                     if (opponentElement == "Water")
                     {
-                        return spellCard!.Damage * 2;
+                        return damage * 2;
                     }
                     else if (opponentElement == "Fire")
                     {
-                        return spellCard!.Damage * 0.5;
+                        return damage * 0.5;
                     }
                     else
                     {
-                        return spellCard!.Damage;
+                        return damage;
                     }
                 default:
-                    return spellCard!.Damage;
+                    return damage;
             }
         }
 
@@ -319,13 +319,11 @@ namespace MonsterTradingCards.GameFunctions
 
             //Update User Stats
             player1!.RoundsPlayed += winsA + winsB + draws;
-            player1.Elo += winsA * 3 - winsB * 5;
             player1.RoundsWon += winsA;
             player1.Battles++;
             player1.RoundsLost = winsB;
 
             player2!.RoundsPlayed += winsA + winsB + draws;
-            player2.Elo +=  winsB * 3 - winsA * 5;
             player2.RoundsWon += winsB;
             player2.Battles++;
             player2.RoundsLost = winsA;
@@ -333,9 +331,14 @@ namespace MonsterTradingCards.GameFunctions
             if (winsA > winsB)
             {
                 player1.Wins++;
-            }else if (winsA < winsB)
+                player1.Elo += 3;
+                player2.Elo -= 5;
+            }
+            else if (winsA < winsB)
             {
                 player2.Wins++;
+                player2.Elo += 3;
+                player1.Elo -= 5;
             }
 
                 if (player1.Elo < 0)

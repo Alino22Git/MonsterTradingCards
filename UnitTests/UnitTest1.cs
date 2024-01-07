@@ -336,7 +336,6 @@ namespace UnitTests
             Assert.That(dbRepo.GetAllTrades()==null);
         }
         
-
         [Test]
         public void GetTypeFromCardName_TypePlusElement()
         {
@@ -344,10 +343,10 @@ namespace UnitTests
             string name = "FireElv";
 
             // Act
-            string element = GameLogic.GetTypeFromCardName(name);
+            string type = GameLogic.GetTypeFromCardName(name);
 
             // Assert
-            Assert.That(element=="Elv");
+            Assert.That(type=="Elv");
         }
 
         [Test]

@@ -115,7 +115,7 @@ public class Server
             var username = path.Substring("/users/".Length); //Get /{username}
             var foundUser = users.FirstOrDefault(user => user.Username == username);
 
-            if ((token != username + "-mtcgToken" && token != "admin-mtcgToken") || !tokenlist.Contains(token))
+            if ((token != "admin-mtcgToken") && !tokenlist.Contains(token))
             {
                 responseType = "Access token is missing or invalid";
             }
@@ -327,7 +327,7 @@ public class Server
         {
             var package = new HashSet<Card>();
             var postCards = JsonConvert.DeserializeObject<List<Card>>(requestBody); //Deserializes JSON into (List of object) Card
-            if (postCards == null)
+            if (postCards == null||postCards.Count!=5)
             {
                 responseType = "Invalid JSON data";
             }
@@ -600,7 +600,7 @@ public class Server
                 var username = path.Substring("/users/".Length);
                 var foundUser = users.FirstOrDefault(user => user.Username == username);
 
-                if ((token != username + "-mtcgToken" && token != "admin-mtcgToken") || !tokenlist.Contains(token))
+                if (token != "admin-mtcgToken" && !tokenlist.Contains(token))
                 {
                     responseType = "Access token is missing or invalid";
                 }
@@ -645,26 +645,33 @@ public class Server
             {
                 var found = 0;
                 var userCards = (List<Card>)dbRepo.UserGetCards(foundUser)!;
+                if (userCards == null)
+                {
+                    responseType =  "At least one of the provided cards does not belong to the user or is not available.";
+                }
+                else
+                {
 
                 for (var i = 0; i < userCards.Count; i++)
                 {
-                    for (var x = 0; x < postCards.Count;x++)
+                    for (var x = 0; x < postCards.Count; x++)
                     {
                         var id = userCards[i].Id;
-                        if (id != null && id.Equals(postCards[x].Id)) //Checks if the all cards are available for the user
+                        if (id != null &&
+                            id.Equals(postCards[x].Id)) //Checks if the all cards are available for the user
                         {
                             found++;
                             break;
                         }
                     }
 
-                    if (found == 4)  //If 4 Cards are found exit the loop
+                    if (found == 4) //If 4 Cards are found exit the loop
                         break;
                 }
 
                 if (found == 4)
                 {
-                    
+
                     foreach (var c in postCards)
                     {
                         var card = userCards.FirstOrDefault(card => card.Id == c.Id);
@@ -683,6 +690,7 @@ public class Server
                         "At least one of the provided cards does not belong to the user or is not available.";
                 }
             }
+        }
         }
 
         CreateAndSendResponse(responseType, writer, objectResponse);

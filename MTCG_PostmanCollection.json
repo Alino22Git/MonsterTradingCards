@@ -1,0 +1,710 @@
+{
+	"info": {
+		"_postman_id": "8197755b-39ae-4872-a2ae-56d8b79be3ac",
+		"name": "Monster Trading Card Game",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "30951534"
+	},
+	"item": [
+		{
+			"name": "Add User Cool123",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Username\": \"Cool123\",\r\n    \"Password\": \"123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/users"
+			},
+			"response": []
+		},
+		{
+			"name": "Add User Fire_abc",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Username\": \"Fire_abc\",\r\n    \"Password\": \"abc\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/users"
+			},
+			"response": []
+		},
+		{
+			"name": "Login Cool",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Username\": \"Cool123\",\r\n    \"Password\": \"123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/sessions"
+			},
+			"response": []
+		},
+		{
+			"name": "Login Fire",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Username\": \"Fire_abc\",\r\n    \"Password\": \"abc\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/sessions"
+			},
+			"response": []
+		},
+		{
+			"name": "Change Info Cool",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Cool123-mtcgToken"
+					}
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Alen Asanov\",\r\n    \"bio\": \"Ein netter Student.\",\r\n    \"image\": \":)\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/users/Cool123"
+			},
+			"response": []
+		},
+		{
+			"name": "Change Info Fire",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Fire_abc-mtcgToken"
+					}
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Bernd Schneider\",\r\n    \"bio\": \"Schlaeft immer!\",\r\n    \"image\": \":3\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/users/Fire_abc"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Info Cool",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Cool123-mtcgToken"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/users/Cool123"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Info Fire",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Cool123-mtcgToken"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/users/Cool123"
+			},
+			"response": []
+		},
+		{
+			"name": "Add Package#1",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "admin-mtcgToken"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"Id\": \"1a\",\r\n        \"Name\": \"WaterGoblin\",\r\n        \"Damage\": 20.0\r\n    },\r\n    {\r\n        \"Id\": \"2a\",\r\n        \"Name\": \"Dragon\",\r\n        \"Damage\": 30.0\r\n    },\r\n    {\r\n        \"Id\": \"3a\",\r\n        \"Name\": \"FireWizard\",\r\n        \"Damage\": 30.0\r\n    },\r\n    {\r\n        \"Id\": \"4a\",\r\n        \"Name\": \"Ork\",\r\n        \"Damage\": 40.0\r\n    },\r\n    {\r\n        \"Id\": \"5a\",\r\n        \"Name\": \"Kraken\",\r\n        \"Damage\": 30.0\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/packages"
+			},
+			"response": []
+		},
+		{
+			"name": "Buy Package Cool",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Cool123-mtcgToken"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/transactions/packages"
+			},
+			"response": []
+		},
+		{
+			"name": "Add Package#2",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "admin-mtcgToken"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"Id\": \"1b\",\r\n        \"Name\": \"Knight\",\r\n        \"Damage\": 20.0\r\n    },\r\n    {\r\n        \"Id\": \"2b\",\r\n        \"Name\": \"FireElv\",\r\n        \"Damage\": 30.0\r\n    },\r\n    {\r\n        \"Id\": \"3b\",\r\n        \"Name\": \"FireSpell\",\r\n        \"Damage\": 20.0\r\n    },\r\n    {\r\n        \"Id\": \"4b\",\r\n        \"Name\": \"FireOrk\",\r\n        \"Damage\": 30.0\r\n    },\r\n    {\r\n        \"Id\": \"5b\",\r\n        \"Name\": \"WaterDragon\",\r\n        \"Damage\": 30.0\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/packages"
+			},
+			"response": []
+		},
+		{
+			"name": "Buy Package Fire",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Fire_abc-mtcgToken"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/transactions/packages"
+			},
+			"response": []
+		},
+		{
+			"name": "Add Package#3",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "admin-mtcgToken"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"Id\": \"1c\",\r\n        \"Name\": \"Goblin\",\r\n        \"Damage\": 10.0\r\n    },\r\n    {\r\n        \"Id\": \"2c\",\r\n        \"Name\": \"FireDragon\",\r\n        \"Damage\": 50.0\r\n    },\r\n    {\r\n        \"Id\": \"3c\",\r\n        \"Name\": \"Spell\",\r\n        \"Damage\": 20.0\r\n    },\r\n    {\r\n        \"Id\": \"4c\",\r\n        \"Name\": \"FireKnight\",\r\n        \"Damage\": 50.0\r\n    },\r\n    {\r\n        \"Id\": \"5c\",\r\n        \"Name\": \"WaterElv\",\r\n        \"Damage\": 20.0\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/packages"
+			},
+			"response": []
+		},
+		{
+			"name": "Add Package#4",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "admin-mtcgToken"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"Id\": \"1d\",\r\n        \"Name\": \"FireGoblin\",\r\n        \"Damage\": 30.0\r\n    },\r\n    {\r\n        \"Id\": \"2d\",\r\n        \"Name\": \"Dragon\",\r\n        \"Damage\": 50.0\r\n    },\r\n    {\r\n        \"Id\": \"3d\",\r\n        \"Name\": \"Spell\",\r\n        \"Damage\": 20.0\r\n    },\r\n    {\r\n        \"Id\": \"4d\",\r\n        \"Name\": \"WaterOrk\",\r\n        \"Damage\": 40.0\r\n    },\r\n    {\r\n        \"Id\": \"5d\",\r\n        \"Name\": \"FireSpell\",\r\n        \"Damage\": 20.0\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/packages"
+			},
+			"response": []
+		},
+		{
+			"name": "Add Package#5",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "admin-mtcgToken"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"Id\": \"1e\",\r\n        \"Name\": \"FireGoblin\",\r\n        \"Damage\": 10.0\r\n    },\r\n    {\r\n        \"Id\": \"2e\",\r\n        \"Name\": \"WaterDragon\",\r\n        \"Damage\": 30.0\r\n    },\r\n    {\r\n        \"Id\": \"3e\",\r\n        \"Name\": \"Kraken\",\r\n        \"Damage\": 20.0\r\n    },\r\n    {\r\n        \"Id\": \"4e\",\r\n        \"Name\": \"FireOrk\",\r\n        \"Damage\": 40.0\r\n    },\r\n    {\r\n        \"Id\": \"5e\",\r\n        \"Name\": \"Elv\",\r\n        \"Damage\": 20.0\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/packages"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Cards Cool",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Cool123-mtcgToken"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/cards"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Cards Fire",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true,
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Fire_abc-mtcgToken"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/cards"
+			},
+			"response": []
+		},
+		{
+			"name": "Configure Deck Cool",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Cool123-mtcgToken"
+					}
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"Id\": \"1a\"\r\n    },\r\n    {\r\n        \"Id\": \"2a\"\r\n    },\r\n    {\r\n        \"Id\": \"3a\"\r\n    },\r\n    {\r\n        \"Id\": \"4a\"\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/deck"
+			},
+			"response": []
+		},
+		{
+			"name": "Configure Deck Fire",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Fire_abc-mtcgToken"
+					}
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"Id\": \"1b\"\r\n    },\r\n    {\r\n        \"Id\": \"2b\"\r\n    },\r\n    {\r\n        \"Id\": \"3b\"\r\n    },\r\n    {\r\n        \"Id\": \"5b\"\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/deck"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Deck Cool",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Cool123-mtcgToken"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/deck"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Deck Fire",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Fire_abc-mtcgToken"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/deck"
+			},
+			"response": []
+		},
+		{
+			"name": "Stats Cool",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Cool123-mtcgToken"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/stats"
+			},
+			"response": []
+		},
+		{
+			"name": "Scoreboard",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Cool123-mtcgToken"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/scoreboard"
+			},
+			"response": []
+		},
+		{
+			"name": "Battle Cool",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Cool123-mtcgToken"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/battles"
+			},
+			"response": []
+		},
+		{
+			"name": "Battle Fire",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Fire_abc-mtcgToken"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/battles"
+			},
+			"response": []
+		},
+		{
+			"name": "Trade Offer Cool",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Cool123-mtcgToken"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"Id\": \"Trade1\",\r\n \"CardToTrade\": \"5a\", \r\n \"Type\": \"Ork\", \r\n \"MinimumDamage\": 15\r\n }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/tradings"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Trade Offers",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Cool123-mtcgToken"
+					}
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/tradings"
+			},
+			"response": []
+		},
+		{
+			"name": "Trading Offer Cool",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Cool123-mtcgToken"
+					}
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/tradings/Trade1"
+			},
+			"response": []
+		},
+		{
+			"name": "Trading Offer Accepted Fire",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "Fire_abc-mtcgToken"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"Id\": \"4b\"\r\n }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:10001/tradings/Trade1"
+			},
+			"response": []
+		}
+	]
+}
